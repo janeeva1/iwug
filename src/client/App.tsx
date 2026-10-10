@@ -1,6 +1,6 @@
 import './site.css';
 import './auth-notice.css';
-import { createContext, useContext, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, Redirect, Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
 import { AuthProvider, useAuth, type AuthUser } from './auth';
@@ -8,10 +8,10 @@ import { AdminContentPanel, SiteContentContextProvider, SITE_CONTENT_QUERY_KEY, 
 import { AdminPaymentsPanel, MEMBER_BILLING_QUERY_KEY, formatNgn, initializePayment, useMemberBilling, usePaymentConfig, useVerifyPayment } from './payments';
 import {
   ArrowDownRight, ArrowRight, ArrowUpRight, BookOpen, Check, ChevronDown,
-  ChevronRight, Heart, Languages, LogOut, Menu, ShieldCheck,
+  ChevronRight, ChevronLeft, Heart, Languages, LogOut, Menu, ShieldCheck,
   Sparkles, UsersRound, X, CalendarDays, MapPin, ExternalLink, CircleHelp,
   LoaderCircle, Plus, Save, Trash2, Pencil, Settings2, ChartNoAxesColumn,
-  Images, Search, Sun, Moon, RotateCw, Home, CreditCard,
+  Images, Search, Sun, Moon, RotateCw, Home, CreditCard, Play, Pause,
 } from 'lucide-react';
 import {
   useListPages, getListPagesQueryKey, useListAdminPages, getListAdminPagesQueryKey,
@@ -287,7 +287,11 @@ function GalleryPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Loc
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [items, setItems] = useState<GalleryMediaItem[]>([]);
   const [next, setNext] = useState<string | null>(null);
+  const [index, setIndex] = useState(0);
+  const [playing, setPlaying] = useState(true);
   const [lightbox, setLightbox] = useState<GalleryMediaItem | null>(null);
+  const railRef = useRef<HTMLDivElement | null>(null);
+  const touchX = useRef<number | null>(null);
   const list: GalleryCategory[] = categories.data?.categories ?? [];
   useEffect(() => {
     if (!activeId && list.length) setActiveId((list.find((c) => c.featured) ?? list[0]).id);
@@ -302,23 +306,67 @@ function GalleryPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Loc
     setItems((prev) => (cursor ? [...prev, ...media.data!.items] : media.data!.items));
     setNext(media.data.nextCursor);
   }, [media.data, activeId, cursor]);
-  const selectCategory = (id: string) => { setActiveId(id); setCursor(undefined); setItems([]); setNext(null); setLightbox(null); };
+  const count = items.length;
+  const goto = (target: number) => { if (!count) return; setIndex(((target % count) + count) % count); };
+  const step = (delta: number) => goto(index + delta);
+  const selectCategory = (id: string) => { setActiveId(id); setCursor(undefined); setItems([]); setNext(null); setIndex(0); setLightbox(null); };
+  useEffect(() => {
+    if (!playing || count <= 1) return;
+    const timer = window.setInterval(() => setIndex((i) => (i + 1) % count), 5000);
+    return () => window.clearInterval(timer);
+  }, [playing, count]);
+  useEffect(() => {
+    const el = railRef.current?.querySelector<HTMLElement>(`[data-thumb="${index}"]`);
+    el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }, [index]);
+  const onKey = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
+  };
+  const onTouchStart = (e: React.TouchEvent) => { touchX.current = e.touches[0]?.clientX ?? null; };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchX.current == null) return;
+    const dx = (e.changedTouches[0]?.clientX ?? touchX.current) - touchX.current;
+    if (Math.abs(dx) > 45) step(dx < 0 ? 1 : -1);
+    touchX.current = null;
+  };
+  const current = items[index];
   return <PageFrame locale={locale} setLocale={setLocale}><main className="inner-page shell">
     <div className="page-kicker"><Wordmark/><span>GALLERY / ỌBA FOTO</span></div>
-    <h1 className="serif inner-title">{t(locale,'Foto na ụda anyị,<br/>si na Commons.','Our photos and sound,<br/>straight from Commons.')}</h1>
-    <p className="inner-lede">{t(locale,'Foto, ụda na vidiyo ndị otu anyị na ndị mmekọ anyị kesara na Wikimedia Commons — nwere ikike efu maka onye ọ bụla iji.', 'Photographs, audio and video shared by our members and partners on Wikimedia Commons — freely licensed for anyone to reuse.')}</p>
+    <h1 className="serif inner-title">{t(locale,'Foto anyị,<br/>si na Commons.','Our photos,<br/>straight from Commons.')}</h1>
+    <p className="inner-lede">{t(locale,'Foto ndị otu anyị na ndị mmekọ anyị kesara na Wikimedia Commons — nwere ikike efu maka onye ọ bụla iji.', 'Photographs shared by our members and partners on Wikimedia Commons — freely licensed for anyone to reuse.')}</p>
     {categories.isLoading ? <Skeleton rows={3}/> : categories.error ? <ErrorNotice message={asError(categories.error)} retry={()=>categories.refetch()}/> : <>
       <div className="gallery-categories" role="tablist" aria-label={t(locale,'Họrọ otu','Choose a category')}>{list.map((c) => <button type="button" key={c.id} role="tab" aria-selected={c.id===activeId} className={c.id===activeId?'active':''} onClick={()=>selectCategory(c.id)} data-testid={`gallery-category-${c.id}`}><b>{locale==='ig'?c.titleIg:c.titleEn}</b><small>{c.files.toLocaleString(locale==='ig'?'ig-NG':'en-GB')} {t(locale,'faịlụ','files')}</small></button>)}</div>
       {active && <p className="gallery-category-note">{locale==='ig'?active.descriptionIg:active.descriptionEn}</p>}
       {media.isLoading && !items.length ? <Skeleton rows={4}/> : media.error ? <ErrorNotice message={asError(media.error)} retry={()=>media.refetch()}/> : items.length ? <>
-        <div className="gallery-grid" data-testid="gallery-grid">{items.map((m) => <figure className="gallery-tile" key={m.pageId} data-testid={`gallery-item-${m.pageId}`}>
-          <button type="button" className="gallery-thumb" onClick={()=>setLightbox(m)} aria-label={m.title}>{m.mime.startsWith('image/') ? <img src={m.thumbUrl} alt={m.title} loading="lazy"/> : <span className="gallery-nonimage"><Images size={28}/><small>{m.mime.split('/')[0]}</small></span>}</button>
-          <figcaption><span>{m.title}</span>{m.license && <small>{m.license}</small>}</figcaption>
-        </figure>)}</div>
+        <div className="gallery-viewer" data-testid="gallery-grid">
+          <div className="gallery-hero" tabIndex={0} role="group" aria-roledescription="carousel" aria-label={active ? (locale==='ig'?active.titleIg:active.titleEn) : t(locale,'Ọba foto','Photo gallery')} onKeyDown={onKey} onMouseEnter={()=>setPlaying(false)} onMouseLeave={()=>setPlaying(true)} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+            <div className="gallery-stage">
+              <div className="gallery-track" style={{ transform: `translate3d(-${index * 100}%,0,0)` }}>
+                {items.map((m, i) => <button type="button" key={m.pageId} className="gallery-slide" aria-hidden={i!==index} tabIndex={i===index?0:-1} onClick={()=>setLightbox(m)} aria-label={m.title} data-testid={`gallery-item-${m.pageId}`}>
+                  {Math.abs(i - index) <= 1 ? <img src={m.thumbUrl} alt={m.title} loading={i===index?'eager':'lazy'} draggable={false}/> : null}
+                </button>)}
+            </div>
+            {count > 1 && <>
+              <button type="button" className="gallery-nav prev" onClick={()=>step(-1)} aria-label={t(locale,'Nke gara aga','Previous image')}><ChevronLeft/></button>
+              <button type="button" className="gallery-nav next" onClick={()=>step(1)} aria-label={t(locale,'Nke na-esote','Next image')}><ChevronRight/></button>
+            </>}
+            {current && <div className="gallery-caption"><span className="gallery-caption-title">{current.title}</span>{current.license && <small>{current.license}</small>}</div>}
+            {count > 1 && <div className="gallery-controls">
+              <button type="button" className="gallery-play" onClick={()=>setPlaying(p=>!p)} aria-label={playing?t(locale,'Kwụsị ntụgharị','Pause slideshow'):t(locale,'Malite ntụgharị','Play slideshow')}>{playing?<Pause size={14}/>:<Play size={14}/>}</button>
+              <span className="gallery-counter">{(index+1).toLocaleString()} / {count.toLocaleString()}</span>
+            </div>}
+          </div>
+          </div>
+          {playing && count>1 && <span key={index} className="gallery-progress" aria-hidden="true"/>}
+          <div className="gallery-rail" ref={railRef} role="list" aria-label={t(locale,'Foto ndị ọzọ','More photos')}>
+            {items.map((m,i)=><button type="button" role="listitem" key={m.pageId} data-thumb={i} className={`gallery-rail-item ${i===index?'active':''}`} onClick={()=>goto(i)} aria-label={m.title} aria-current={i===index} data-testid={`gallery-thumb-${m.pageId}`}><img src={m.thumbUrl} alt="" loading="lazy"/></button>)}
+          </div>
+        </div>
         <div className="gallery-more">{next ? <button type="button" className="btn-primary" disabled={media.isFetching} onClick={()=>setCursor(next)} data-testid="button-gallery-more">{media.isFetching?<LoaderCircle className="spin" size={16}/>:t(locale,'Gosi ihe ọzọ','Load more')}<ArrowDownRight size={16}/></button> : <span className="status-pill">{t(locale,'Ọ gwụla','End of category')}</span>}</div>
       </> : <div className="empty-feature"><Images size={32}/><span className="eyebrow">NO MEDIA YET</span><h2 className="serif">{t(locale,'Enweghị faịlụ n’otu a ugbu a.','Nothing in this category yet.')}</h2><p>{t(locale,'Họrọ otu ọzọ, ma ọ bụ lee Wikimedia Commons maka ihe niile.','Choose another category, or browse Wikimedia Commons for everything.')}</p><a className="btn-primary" href={`https://commons.wikimedia.org/wiki/Category:${encodeURIComponent(active?.category ?? 'Igbo Wikimedians User Group')}`} target="_blank" rel="noreferrer">{t(locale,'Mepee na Commons','Open on Commons')}<ArrowUpRight size={16}/></a></div>}
     </>}
-    {lightbox && <div className="gallery-lightbox" role="dialog" aria-modal="true" aria-label={lightbox.title} onClick={()=>setLightbox(null)}><div className="gallery-lightbox-body" onClick={(e)=>e.stopPropagation()}><button type="button" className="gallery-lightbox-close" onClick={()=>setLightbox(null)} aria-label={t(locale,'Mechie','Close')}><X/></button>{lightbox.mime.startsWith('image/') ? <img src={lightbox.thumbUrl} alt={lightbox.title}/> : <span className="gallery-nonimage large"><Images size={48}/><small>{lightbox.mime}</small></span>}<div className="gallery-lightbox-meta"><h2 className="serif">{lightbox.title}</h2>{lightbox.caption && <p>{lightbox.caption}</p>}<span className="gallery-credit">{lightbox.artist ?? lightbox.credit ?? t(locale,'Onye nyere aka amaghị','Unknown author')}{lightbox.license ? ` · ${lightbox.license}` : ''}</span><a className="arrow-link" href={lightbox.descriptionUrl} target="_blank" rel="noreferrer">{t(locale,'Lee peeji faịlụ','View file page')}<ArrowUpRight size={15}/></a></div></div></div>}
+    {lightbox && <div className="gallery-lightbox" role="dialog" aria-modal="true" aria-label={lightbox.title} onClick={()=>setLightbox(null)}><div className="gallery-lightbox-body" onClick={(e)=>e.stopPropagation()}><button type="button" className="gallery-lightbox-close" onClick={()=>setLightbox(null)} aria-label={t(locale,'Mechie','Close')}><X/></button><img src={lightbox.url || lightbox.thumbUrl} alt={lightbox.title}/><div className="gallery-lightbox-meta"><h2 className="serif">{lightbox.title}</h2>{lightbox.caption && <p>{lightbox.caption}</p>}<span className="gallery-credit">{lightbox.artist ?? lightbox.credit ?? t(locale,'Onye nyere aka amaghị','Unknown author')}{lightbox.license ? ` · ${lightbox.license}` : ''}</span><a className="arrow-link" href={lightbox.descriptionUrl} target="_blank" rel="noreferrer">{t(locale,'Lee peeji faịlụ','View file page')}<ArrowUpRight size={15}/></a></div></div></div>}
   </main></PageFrame>;
 }
 

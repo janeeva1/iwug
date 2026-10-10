@@ -130,7 +130,7 @@ export const siteCollections: SiteCollection[] = [
     columns: photoColumns,
     items: [
       { src: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Igbo_Masquerade_in_Ezeagu.jpg", title_en: "Igbo masquerade in Ezeagu", title_ig: "Mmanwụ ndị Igbo na Ezeagu", alt_en: "Igbo masquerade in Ezeagu", alt_ig: "Mmanwụ ndị Igbo na Ezeagu", author: "Chuks Zilo", file: "https://commons.wikimedia.org/wiki/File:Igbo_Masquerade_in_Ezeagu.jpg" },
-      { src: "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/24/Lagos_Igbo_Hangout_3.0_at_Festac%2C_Lagos_52.jpg/1280px-Lagos_Igbo_Hangout_3.0_at_Festac%2C_Lagos_52.jpg", title_en: "Lagos Igbo Hangout in Festac", title_ig: "Nzukọ ndị Igbo na Festac, Lagos", alt_en: "Lagos Igbo Hangout 3.0 at Festac, Lagos", alt_ig: "Nzukọ ndị Igbo na Festac, Lagos", author: "MediaMOF", file: "https://commons.wikimedia.org/wiki/File:Lagos_Igbo_Hangout_3.0_at_Festac,_Lagos_52.jpg" },
+      { src: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Lagos_Igbo_Hangout_3.0_at_Festac%2C_Lagos_52.jpg/1280px-Lagos_Igbo_Hangout_3.0_at_Festac%2C_Lagos_52.jpg", title_en: "Lagos Igbo Hangout in Festac", title_ig: "Nzukọ ndị Igbo na Festac, Lagos", alt_en: "Lagos Igbo Hangout 3.0 at Festac, Lagos", alt_ig: "Nzukọ ndị Igbo na Festac, Lagos", author: "MediaMOF", file: "https://commons.wikimedia.org/wiki/File:Lagos_Igbo_Hangout_3.0_at_Festac,_Lagos_52.jpg" },
     ],
   },
   {

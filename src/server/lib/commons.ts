@@ -132,6 +132,10 @@ function cleanUploadUrl(raw: string): string {
 function toMediaItem(page: CommonsPage): CommonsMediaItem | null {
   const info = page.imageinfo?.[0];
   if (!info?.url) return null;
+  const mime = String(info.mime ?? "");
+  // The gallery is an image carousel; skip audio/video/documents (e.g. .ogg, .webm).
+  if (!mime.startsWith("image/")) return null;
+  if (!info.thumburl && !info.url) return null;
   const meta = info.extmetadata ?? {};
   return {
     pageId: Number(page.pageid ?? 0),
@@ -141,7 +145,7 @@ function toMediaItem(page: CommonsPage): CommonsMediaItem | null {
     thumbUrl: cleanUploadUrl(String(info.thumburl ?? info.url)),
     width: Number(info.width ?? 0),
     height: Number(info.height ?? 0),
-    mime: String(info.mime ?? ""),
+    mime,
     artist: stripHtml(meta.Artist?.value),
     credit: stripHtml(meta.Credit?.value),
     license: stripHtml(meta.LicenseShortName?.value),
@@ -185,7 +189,7 @@ export async function getCategoryMedia(
     gcmlimit: String(limit),
     prop: "imageinfo",
     iiprop: "url|size|mime|extmetadata",
-    iiurlwidth: "800",
+    iiurlwidth: "1280",
   };
   if (cursor) params.gcmcontinue = cursor;
 

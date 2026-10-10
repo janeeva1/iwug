@@ -221,3 +221,51 @@
 .donation-amount{padding:.5rem .9rem;border:1px solid hsl(var(--border));border-radius:999px;background:transparent;cursor:pointer;font-weight:600}
 .donation-amount.active,.donation-amount:hover{border-color:hsl(var(--primary));color:hsl(var(--primary))}
 .donation-custom{display:flex;flex-direction:column;gap:.35rem;margin-bottom:1rem;font-size:.8rem;color:hsl(var(--muted-foreground))}
+
+/* Gallery carousel */
+.gallery-viewer{margin-top:6px}
+.gallery-hero{position:relative;outline:none}
+.gallery-hero:focus-visible .gallery-stage{box-shadow:0 0 0 3px hsl(var(--accent)/.55)}
+.gallery-stage{position:relative;overflow:hidden;background:#dfe0d4;aspect-ratio:16/9;border:1px solid hsl(var(--border))}
+.gallery-track{display:flex;height:100%;will-change:transform;transition:transform .65s cubic-bezier(.22,.72,.18,1)}
+.gallery-slide{position:relative;flex:0 0 100%;width:100%;height:100%;border:0;padding:0;background:#0f1f1a;cursor:zoom-in;overflow:hidden}
+.gallery-slide img{width:100%;height:100%;object-fit:cover;display:block}
+.gallery-caption{position:absolute;left:0;right:0;bottom:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;padding:18px 20px;background:linear-gradient(0deg,rgba(12,30,24,.85),rgba(12,30,24,0));color:#f3f0e6;pointer-events:none}
+.gallery-caption-title{font-family:var(--app-font-serif);font-size:16px;line-height:1.2;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+.gallery-caption small{font-family:var(--app-font-mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:#cfe0d5;white-space:nowrap}
+.gallery-nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:50%;background:rgba(244,242,232,.88);color:hsl(var(--primary));cursor:pointer;box-shadow:0 4px 14px rgba(10,25,20,.28);transition:background .2s,transform .2s;z-index:3}
+.gallery-nav:hover{background:#fff;transform:translateY(-50%) scale(1.07)}
+.gallery-nav svg{width:22px;height:22px}
+.gallery-nav.prev{left:14px}
+.gallery-nav.next{right:14px}
+.gallery-controls{position:absolute;top:14px;right:14px;display:flex;align-items:center;gap:8px;z-index:3}
+.gallery-play{width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:50%;background:rgba(244,242,232,.9);color:hsl(var(--primary));cursor:pointer}
+.gallery-play:hover{background:#fff}
+.gallery-counter{font-family:var(--app-font-mono);font-size:10px;color:#f3f0e6;background:rgba(12,30,24,.6);padding:6px 10px;border-radius:20px;letter-spacing:.06em}
+.gallery-progress{display:block;height:3px;margin-top:-3px;background:hsl(var(--accent));transform-origin:left;animation:gallery-progress 5s linear;position:relative;z-index:4}
+@keyframes gallery-progress{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.gallery-rail{display:flex;gap:8px;overflow-x:auto;padding:12px 2px 6px;scroll-snap-type:x proximity;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.gallery-rail-item{flex:0 0 auto;width:118px;height:80px;padding:0;border:2px solid transparent;border-radius:6px;overflow:hidden;background:#e3e4d8;cursor:pointer;opacity:.6;transition:opacity .2s,border-color .2s,transform .2s;scroll-snap-align:center}
+.gallery-rail-item img{width:100%;height:100%;object-fit:cover;display:block}
+.gallery-rail-item:hover{opacity:1}
+.gallery-rail-item.active{opacity:1;border-color:hsl(var(--primary));transform:translateY(-2px)}
+.dark .gallery-stage,.dark .gallery-slide{background:#0f1f1a}
+.dark .gallery-rail-item{background:#1d3830}
+@media(min-width:1400px){.gallery-stage{aspect-ratio:21/9}}
+@media(max-width:760px){
+  .gallery-categories{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+  .gallery-categories button{flex:0 0 auto}
+  .gallery-stage{aspect-ratio:4/3}
+  .gallery-nav{width:38px;height:38px}
+  .gallery-nav svg{width:19px;height:19px}
+  .gallery-nav.prev{left:8px}
+  .gallery-nav.next{right:8px}
+  .gallery-controls{top:8px;right:8px}
+  .gallery-rail-item{width:84px;height:58px}
+  .gallery-caption{padding:13px 14px}
+  .gallery-caption-title{font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){
+  .gallery-track{transition:none}
+  .gallery-progress{animation:none;display:none}
+}
