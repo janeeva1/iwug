@@ -1,0 +1,143 @@
+.join-auth-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.join-auth-notice > span {
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.join-auth-notice > div {
+  display: flex;
+  gap: 14px;
+}
+
+.join-auth-notice a {
+  color: hsl(var(--primary));
+  font-size: 11px;
+  font-weight: 650;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+  .join-auth-notice,
+  .join-auth-notice > div {
+    width: 100%;
+  }
+
+  .join-auth-notice > div a {
+    flex: 1;
+    padding: 11px;
+    text-align: center;
+    border: 1px solid hsl(var(--border));
+    border-radius: 10px;
+  }
+}
+
+/* Self-hosted auth forms */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+
+.auth-field-username {
+  position: relative;
+}
+
+.auth-suggestions {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 10px;
+  background: hsl(var(--card));
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.auth-suggestions button {
+  width: 100%;
+  text-align: left;
+  padding: 9px 11px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: hsl(var(--foreground));
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.auth-suggestions button:hover {
+  background: hsl(var(--secondary));
+}
+
+.auth-providers {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-provider {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 12px 18px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s, border 0.2s;
+}
+
+.auth-provider:hover {
+  background: hsl(var(--secondary));
+  border-color: hsl(var(--muted-foreground) / 0.45);
+}
+
+.auth-divider {
+  align-self: center;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.auth-switch {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  text-align: center;
+}
+
+.auth-switch a {
+  color: hsl(var(--primary));
+  font-weight: 650;
+}
+
+.auth-form-inline {
+  max-width: 520px;
+}
+

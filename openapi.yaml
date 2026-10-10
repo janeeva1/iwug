@@ -1,0 +1,1009 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Community CMS, membership, and Wikimedia statistics API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Self-hosted sign-in, sessions, and Wikimedia username verification
+  - name: gallery
+    description: Curated Wikimedia Commons media tied to the Igbo Wikimedians
+  - name: dictionary
+    description: Igbo dictionary search (Igbo API with Wiktionary fallback)
+  - name: content
+    description: Public multilingual pages and events
+  - name: membership
+    description: Membership tiers and applications
+  - name: admin
+    description: Restricted site administration
+  - name: community
+    description: Public aggregate community information
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /auth/providers:
+    get:
+      operationId: getAuthProviders
+      tags: [auth]
+      summary: List enabled sign-in methods
+      responses:
+        "200":
+          description: Enabled auth providers
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthProviders"
+  /auth/me:
+    get:
+      operationId: getAuthMe
+      tags: [auth]
+      summary: Get the current session user
+      responses:
+        "200":
+          description: Session user or null
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserEnvelope"
+  /auth/wikimedia/usernames:
+    get:
+      operationId: searchWikimediaUsernames
+      tags: [auth]
+      summary: Prefix-search global Wikimedia usernames for registration
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Matching username suggestions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [suggestions]
+                properties:
+                  suggestions:
+                    type: array
+                    items: { $ref: "#/components/schemas/WikimediaUsernameSuggestion" }
+  /auth/wikimedia/verify:
+    get:
+      operationId: verifyWikimediaUsername
+      tags: [auth]
+      summary: Verify a global Wikimedia username and its contributions
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Wikimedia account information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WikimediaAccountInfo"
+  /auth/register:
+    post:
+      operationId: registerAccount
+      tags: [auth]
+      summary: Create an account with email, a verified Wikimedia username and a password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Created user and session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserEnvelope"
+        "400":
+          description: Unverifiable username or invalid input
+        "409":
+          description: Email or Wikimedia username already in use
+  /auth/login:
+    post:
+      operationId: loginAccount
+      tags: [auth]
+      summary: Sign in with email-or-username and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Signed-in user and session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserEnvelope"
+        "401":
+          description: Incorrect credentials
+  /auth/logout:
+    post:
+      operationId: logoutAccount
+      tags: [auth]
+      summary: End the current session
+      responses:
+        "200":
+          description: Session ended
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+  /auth/complete-profile:
+    post:
+      operationId: completeProfile
+      tags: [auth]
+      summary: Attach a verified Wikimedia username to the current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteProfileInput"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserEnvelope"
+  /auth/refresh:
+    post:
+      operationId: refreshAccount
+      tags: [auth]
+      summary: Re-fetch the linked Wikimedia username
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserEnvelope"
+        "401":
+          description: Not signed in
+  /gallery/categories:
+    get:
+      operationId: getGalleryCategories
+      tags: [gallery]
+      summary: List curated Commons categories with file counts
+      responses:
+        "200":
+          description: Curated gallery categories
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [categories]
+                properties:
+                  categories:
+                    type: array
+                    items: { $ref: "#/components/schemas/GalleryCategory" }
+  /gallery/media:
+    get:
+      operationId: getGalleryMedia
+      tags: [gallery]
+      summary: Page through media in a curated Commons category
+      parameters:
+        - name: category
+          in: query
+          required: true
+          schema: { type: string }
+        - name: cursor
+          in: query
+          required: false
+          schema: { type: string }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 48, default: 24 }
+      responses:
+        "200":
+          description: A page of Commons media
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GalleryMediaPage"
+        "400":
+          description: Unknown category
+  /dictionary/search:
+    get:
+      operationId: searchDictionary
+      tags: [dictionary]
+      summary: Search the Igbo dictionary
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Dictionary search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DictionarySearchResult"
+  /cms/pages:
+    get:
+      operationId: listPages
+      tags: [content]
+      summary: List published CMS pages
+      responses:
+        "200":
+          description: Published multilingual pages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CmsPage"
+    post:
+      operationId: createPage
+      tags: [admin]
+      summary: Create a CMS page
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CmsPageInput"
+      responses:
+        "201":
+          description: Created page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CmsPage"
+  /admin/pages:
+    get:
+      operationId: listAdminPages
+      tags: [admin]
+      summary: List published and draft pages for administrators
+      responses:
+        "200":
+          description: All CMS pages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CmsPage"
+  /cms/pages/{slug}:
+    get:
+      operationId: getPage
+      tags: [content]
+      summary: Get a published CMS page
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Multilingual CMS page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CmsPage"
+        "404":
+          description: Page not found
+    patch:
+      operationId: updatePage
+      tags: [admin]
+      summary: Update a CMS page
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CmsPageInput"
+      responses:
+        "200":
+          description: Updated page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CmsPage"
+    delete:
+      operationId: deletePage
+      tags: [admin]
+      summary: Delete a CMS page
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Page deleted
+  /events:
+    get:
+      operationId: listEvents
+      tags: [content]
+      summary: List community events
+      responses:
+        "200":
+          description: Community events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CommunityEvent"
+    post:
+      operationId: createEvent
+      tags: [admin]
+      summary: Create a community event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityEventInput"
+      responses:
+        "201":
+          description: Created event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityEvent"
+  /events/{eventId}:
+    patch:
+      operationId: updateEvent
+      tags: [admin]
+      summary: Update a community event
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityEventInput"
+      responses:
+        "200":
+          description: Updated event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityEvent"
+    delete:
+      operationId: deleteEvent
+      tags: [admin]
+      summary: Delete a community event
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Event deleted
+  /membership/tiers:
+    get:
+      operationId: listMembershipTiers
+      tags: [membership]
+      summary: List membership tiers
+      responses:
+        "200":
+          description: Active membership tiers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MembershipTier"
+    post:
+      operationId: createMembershipTier
+      tags: [admin]
+      summary: Create a membership tier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MembershipTierInput"
+      responses:
+        "201":
+          description: Created tier
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MembershipTier"
+  /membership/tiers/{tierId}:
+    patch:
+      operationId: updateMembershipTier
+      tags: [admin]
+      summary: Update a membership tier
+      parameters:
+        - name: tierId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MembershipTierInput"
+      responses:
+        "200":
+          description: Updated tier
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MembershipTier"
+    delete:
+      operationId: deleteMembershipTier
+      tags: [admin]
+      summary: Deactivate a membership tier
+      parameters:
+        - name: tierId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Tier deactivated
+  /membership/register:
+    post:
+      operationId: registerMember
+      tags: [membership]
+      summary: Submit a signed-in member registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemberRegistrationInput"
+      responses:
+        "201":
+          description: Registration received
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Member"
+        "401":
+          description: Sign in required
+  /member/me:
+    get:
+      operationId: getMyMembership
+      tags: [membership]
+      summary: Get the current user's membership profile
+      responses:
+        "200":
+          description: Current profile, if registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Member"
+        "404":
+          description: No registration exists
+  /admin/members:
+    get:
+      operationId: listMembers
+      tags: [admin]
+      summary: List registered members for authorized administrators
+      responses:
+        "200":
+          description: Registered members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Member"
+  /admin/members/{memberId}:
+    patch:
+      operationId: updateMember
+      tags: [admin]
+      summary: Update a member's tier or approval status
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemberAdminUpdate"
+      responses:
+        "200":
+          description: Updated member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Member"
+  /community/summary:
+    get:
+      operationId: getCommunitySummary
+      tags: [community]
+      summary: Get safe public project and community summary
+      responses:
+        "200":
+          description: Public community summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunitySummary"
+  /community/contributors:
+    get:
+      operationId: getCommunityContributors
+      tags: [community]
+      summary: List consented members and their Wikimedia activity by project
+      description: >
+        Returns every registered member who opted in to share their Wikimedia
+        contribution totals, grouped by Wikimedia project. Only members with
+        explicit consent appear.
+      responses:
+        "200":
+          description: Consented members with per-project contribution totals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CommunityContributor"
+  /admin/wikimedia-stats:
+    get:
+      operationId: getWikimediaStats
+      tags: [admin]
+      summary: Refresh opt-in member contribution counts across Wikimedia projects
+      responses:
+        "200":
+          description: Per-member contribution totals across linked projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WikimediaMemberStats"
+  /member/wikimedia-stats:
+    get:
+      operationId: getMyWikimediaStats
+      tags: [member]
+      summary: Get Wikimedia contribution counts for the signed-in member
+      responses:
+        "200":
+          description: Only the authenticated member’s own linked-project counts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WikimediaMemberStats"
+        "401":
+          description: Sign in required
+        "404":
+          description: No member profile exists
+  /site-settings:
+    get:
+      operationId: getSiteSettings
+      tags: [content]
+      summary: Get public donation and community contact settings
+      responses:
+        "200":
+          description: Public site settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteSettings"
+    patch:
+      operationId: updateSiteSettings
+      tags: [admin]
+      summary: Update site settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SiteSettingsInput"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteSettings"
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    AuthProviders:
+      type: object
+      required: [password, google, wikimedia]
+      properties:
+        password: { type: boolean }
+        google: { type: boolean }
+        wikimedia: { type: boolean }
+    AuthUser:
+      type: object
+      required: [id, username, displayName, email, emailVerified, avatarUrl, role, wikimediaVerified, wikimediaEditCount, profileComplete, createdAt]
+      properties:
+        id: { type: string }
+        username: { type: ["string", "null"] }
+        displayName: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
+        emailVerified: { type: boolean }
+        avatarUrl: { type: ["string", "null"] }
+        role: { type: string, enum: [member, admin] }
+        wikimediaVerified: { type: boolean }
+        wikimediaEditCount: { type: integer }
+        profileComplete: { type: boolean }
+        createdAt: { type: string, format: date-time }
+    AuthUserEnvelope:
+      type: object
+      required: [user]
+      properties:
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/AuthUser"
+            - type: "null"
+    WikimediaUsernameSuggestion:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+    WikimediaAccountProjectInfo:
+      type: object
+      required: [wiki, url, editCount]
+      properties:
+        wiki: { type: string }
+        url: { type: string }
+        editCount: { type: integer }
+    WikimediaAccountInfo:
+      type: object
+      required: [username, exists, id, editCount, homeWiki, registration, projects, verified]
+      properties:
+        username: { type: string }
+        exists: { type: boolean }
+        id: { type: ["string", "null"] }
+        editCount: { type: integer }
+        homeWiki: { type: ["string", "null"] }
+        registration: { type: ["string", "null"] }
+        projects:
+          type: array
+          items: { $ref: "#/components/schemas/WikimediaAccountProjectInfo" }
+        verified: { type: boolean }
+    RegisterInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        username: { type: string }
+        password: { type: string, minLength: 8 }
+        displayName: { type: string }
+    LoginInput:
+      type: object
+      required: [identifier, password]
+      properties:
+        identifier: { type: string, minLength: 1 }
+        password: { type: string, minLength: 1 }
+    CompleteProfileInput:
+      type: object
+      required: [username]
+      properties:
+        username: { type: string, minLength: 1 }
+        displayName: { type: string }
+    GalleryCategory:
+      type: object
+      required: [id, category, titleEn, titleIg, descriptionEn, descriptionIg, featured, files]
+      properties:
+        id: { type: string }
+        category: { type: string }
+        titleEn: { type: string }
+        titleIg: { type: string }
+        descriptionEn: { type: string }
+        descriptionIg: { type: string }
+        featured: { type: boolean }
+        files: { type: integer }
+    GalleryMediaItem:
+      type: object
+      required: [pageId, title, descriptionUrl, url, thumbUrl, width, height, mime, artist, credit, license, caption]
+      properties:
+        pageId: { type: integer }
+        title: { type: string }
+        descriptionUrl: { type: string }
+        url: { type: string }
+        thumbUrl: { type: string }
+        width: { type: integer }
+        height: { type: integer }
+        mime: { type: string }
+        artist: { type: ["string", "null"] }
+        credit: { type: ["string", "null"] }
+        license: { type: ["string", "null"] }
+        caption: { type: ["string", "null"] }
+    GalleryMediaPage:
+      type: object
+      required: [categoryId, items, nextCursor]
+      properties:
+        categoryId: { type: string }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/GalleryMediaItem" }
+        nextCursor: { type: ["string", "null"] }
+    DictionaryExample:
+      type: object
+      required: [igbo, english]
+      properties:
+        igbo: { type: string }
+        english: { type: ["string", "null"] }
+    DictionaryEntry:
+      type: object
+      required: [word, pronunciation, audioUrl, definitions, examples, url]
+      properties:
+        word: { type: string }
+        pronunciation: { type: ["string", "null"] }
+        audioUrl: { type: ["string", "null"] }
+        definitions:
+          type: array
+          items: { type: string }
+        examples:
+          type: array
+          items: { $ref: "#/components/schemas/DictionaryExample" }
+        url: { type: ["string", "null"] }
+    DictionarySearchResult:
+      type: object
+      required: [query, provider, entries]
+      properties:
+        query: { type: string }
+        provider: { type: string, enum: [igbo-api, wiktionary, none] }
+        entries:
+          type: array
+          items: { $ref: "#/components/schemas/DictionaryEntry" }
+    CmsPage:
+      type: object
+      required: [slug, titleEn, titleIg, summaryEn, summaryIg, bodyEn, bodyIg, published, updatedAt]
+      properties:
+        slug: { type: string }
+        titleEn: { type: string }
+        titleIg: { type: string }
+        summaryEn: { type: string }
+        summaryIg: { type: string }
+        bodyEn: { type: string }
+        bodyIg: { type: string }
+        heroImage: { type: ["string", "null"] }
+        published: { type: boolean }
+        updatedAt: { type: string, format: date-time }
+    CmsPageInput:
+      type: object
+      required: [slug, titleEn, titleIg, summaryEn, summaryIg, bodyEn, bodyIg, published]
+      properties:
+        slug: { type: string, minLength: 1 }
+        titleEn: { type: string, minLength: 1 }
+        titleIg: { type: string, minLength: 1 }
+        summaryEn: { type: string }
+        summaryIg: { type: string }
+        bodyEn: { type: string }
+        bodyIg: { type: string }
+        heroImage: { type: ["string", "null"] }
+        published: { type: boolean }
+    CommunityEvent:
+      type: object
+      required: [id, titleEn, titleIg, descriptionEn, descriptionIg, startsAt, location, project, status, published]
+      properties:
+        id: { type: string }
+        titleEn: { type: string }
+        titleIg: { type: string }
+        descriptionEn: { type: string }
+        descriptionIg: { type: string }
+        startsAt: { type: string, format: date-time }
+        location: { type: string }
+        project: { type: string }
+        status: { type: string, enum: [upcoming, completed] }
+        published: { type: boolean }
+        reportUrl: { type: ["string", "null"] }
+    CommunityEventInput:
+      type: object
+      required: [titleEn, titleIg, descriptionEn, descriptionIg, startsAt, location, project, status, published]
+      properties:
+        titleEn: { type: string, minLength: 1 }
+        titleIg: { type: string, minLength: 1 }
+        descriptionEn: { type: string }
+        descriptionIg: { type: string }
+        startsAt: { type: string, format: date-time }
+        location: { type: string }
+        project: { type: string }
+        status: { type: string, enum: [upcoming, completed] }
+        published: { type: boolean }
+        reportUrl: { type: ["string", "null"], format: uri }
+    MembershipTier:
+      type: object
+      required: [id, nameEn, nameIg, descriptionEn, descriptionIg, priceNgn, interval, active, benefitsEn, benefitsIg]
+      properties:
+        id: { type: string }
+        nameEn: { type: string }
+        nameIg: { type: string }
+        descriptionEn: { type: string }
+        descriptionIg: { type: string }
+        priceNgn: { type: integer, minimum: 0 }
+        interval: { type: string, enum: [free, monthly, annual, once] }
+        active: { type: boolean }
+        benefitsEn:
+          type: array
+          items: { type: string }
+        benefitsIg:
+          type: array
+          items: { type: string }
+    MembershipTierInput:
+      type: object
+      required: [nameEn, nameIg, descriptionEn, descriptionIg, priceNgn, interval, active, benefitsEn, benefitsIg]
+      properties:
+        nameEn: { type: string, minLength: 1 }
+        nameIg: { type: string, minLength: 1 }
+        descriptionEn: { type: string }
+        descriptionIg: { type: string }
+        priceNgn: { type: integer, minimum: 0 }
+        interval: { type: string, enum: [free, monthly, annual, once] }
+        active: { type: boolean }
+        benefitsEn:
+          type: array
+          items: { type: string }
+        benefitsIg:
+          type: array
+          items: { type: string }
+    WikimediaAccount:
+      type: object
+      required: [project, username]
+      properties:
+        project: { type: string, enum: [igwiki, igwikt, igwikiquote, wikidata, commons, wikifunctions, enwiki, wikisource, meta] }
+        username: { type: string, minLength: 1 }
+    MemberRegistrationInput:
+      type: object
+      required: [displayName, location, tierId, wikiAccounts, shareWikiStats]
+      properties:
+        displayName: { type: string, minLength: 1 }
+        location: { type: string }
+        tierId: { type: string }
+        wikiAccounts:
+          type: array
+          items: { $ref: "#/components/schemas/WikimediaAccount" }
+        shareWikiStats: { type: boolean }
+    Member:
+      type: object
+      required: [id, displayName, location, tierId, status, wikiAccounts, shareWikiStats, createdAt]
+      properties:
+        id: { type: string }
+        displayName: { type: string }
+        location: { type: string }
+        tierId: { type: string }
+        status: { type: string, enum: [pending, active, paused] }
+        wikiAccounts:
+          type: array
+          items: { $ref: "#/components/schemas/WikimediaAccount" }
+        shareWikiStats: { type: boolean }
+        createdAt: { type: string, format: date-time }
+    MemberAdminUpdate:
+      type: object
+      properties:
+        tierId: { type: string }
+        status: { type: string, enum: [pending, active, paused] }
+        shareWikiStats: { type: boolean }
+    CommunitySummary:
+      type: object
+      required: [registeredMembers, publishedEvents, activeProjects, projects]
+      properties:
+        registeredMembers: { type: integer }
+        publishedEvents: { type: integer }
+        activeProjects: { type: integer }
+        projects:
+          type: array
+          items:
+            type: object
+            required: [id, labelEn, labelIg, url]
+            properties:
+              id: { type: string }
+              labelEn: { type: string }
+              labelIg: { type: string }
+              url: { type: string, format: uri }
+    WikimediaProjectStats:
+      type: object
+      required: [project, username, contributions, available]
+      properties:
+        project: { type: string }
+        username: { type: string }
+        contributions: { type: integer }
+        available: { type: boolean }
+    WikimediaMemberStats:
+      type: object
+      required: [memberId, displayName, projects, totalContributions]
+      properties:
+        memberId: { type: string }
+        displayName: { type: string }
+        projects:
+          type: array
+          items: { $ref: "#/components/schemas/WikimediaProjectStats" }
+        totalContributions: { type: integer }
+    CommunityProjectTotal:
+      type: object
+      required: [project, contributions, available, accounts]
+      properties:
+        project: { type: string }
+        contributions: { type: integer }
+        available: { type: boolean }
+        accounts:
+          type: array
+          items: { type: string }
+    CommunityContributor:
+      type: object
+      required: [memberId, displayName, totalContributions, projects, byProject]
+      properties:
+        memberId: { type: string }
+        displayName: { type: string }
+        totalContributions: { type: integer }
+        projects:
+          type: array
+          items: { $ref: "#/components/schemas/WikimediaProjectStats" }
+        byProject:
+          type: array
+          items: { $ref: "#/components/schemas/CommunityProjectTotal" }
+    SiteSettings:
+      type: object
+      required: [donationUrl, contactEmail, contactAddress, currency, donationEnabled]
+      properties:
+        donationUrl: { type: ["string", "null"] }
+        contactEmail: { type: string }
+        contactAddress: { type: string }
+        currency: { type: string }
+        donationEnabled: { type: boolean }
+    SiteSettingsInput:
+      type: object
+      required: [donationUrl, contactEmail, contactAddress, currency, donationEnabled]
+      properties:
+        donationUrl: { type: ["string", "null"], format: uri }
+        contactEmail: { type: string, format: email }
+        contactAddress: { type: string }
+        currency: { type: string, enum: [NGN, USD] }
+        donationEnabled: { type: boolean }
+

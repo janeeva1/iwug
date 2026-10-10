@@ -1,0 +1,245 @@
+IGBO WIKIMEDIANS
+USER GROUP
+Comprehensive Research Dossier
+Organizational history • Leadership • Wikimedia projects • Activities
+Funding • Partnerships • Governance • Impact • Research sources
+Research date: 9 October 2026
+Prepared from publicly available online records. This document distinguishes reported organizational claims from independent verification and analytical observations.
+ 
+Contents
+•	1. Executive Summary
+•	2. Identity, Mission, and Organizational Model
+•	3. Founding History and Recognition
+•	4. Leadership, Membership, and Governance
+•	5. Wikimedia Projects and Workstreams
+•	6. Timeline: 2016–2026
+•	7. Review of 2023 Activities
+•	8. Review of 2024 and 2025
+•	9. Review of 2026 Activities
+•	10. Funding, Grants, and Financial Reporting
+•	11. Partnerships and External Relationships
+•	12. Community Development and Geographic Reach
+•	13. Independent Assessment: Evidence and Gaps
+•	14. Recommended Further Investigation
+•	15. Conclusion
+•	Appendix A. Primary-Source Directory
+•	Appendix B. Notes on Interpretation and Verification
+1. Executive Summary
+Igbo Wikimedians User Group (also referred to as Igbo Wikimedians, Wikimedia Igbo, or IWUG) is a volunteer community working to improve the availability, quality, and visibility of Igbo-language and Igbo-related knowledge across Wikipedia and other Wikimedia projects. Its documented work spans encyclopedia articles, dictionary and lexeme data, source texts, structured data, photographs, audio recordings, cultural heritage, contributor training, and community development.
+The group's official history identifies the Wikipedia Igbo Women Edit-a-thon Project in 2016 as the beginning of its organized activities. The Wikimedia Affiliations Committee approved recognition of the group as a Wikimedia user group on 5 May 2018. Subsequent public records describe expansion into Wikidata lexemes, Wikisource, Commons media, technical maintenance, university clubs, and recurring virtual campaigns.
+A Wikimedia Community Fund General Support Fund grant record covers 1 January 2024 through 31 December 2026 and lists a recommended amount of US$243,000. The grant amount should not be interpreted as proof that the full sum was paid or spent. The public financial record also contains a 2024 category-total discrepancy that should be checked against the original financial attachment or a corrected statement.
+This dossier is a substantial first-pass compilation of public primary sources and reported results. It is not an assertion that every social-media post, historical page, grant attachment, contributor record, or private discussion has been captured or independently audited.
+2. Identity, Mission, and Organizational Model
+The group is a Wikimedia movement affiliate organized around an Igbo-language and cultural community. Its public objectives include encouraging Igbo speakers and learners to contribute to Wikimedia projects, improving content coverage and quality, developing contributors' skills, supporting language and cultural preservation, and working with institutions and other organizations to promote free knowledge.
+It is important to distinguish Wikimedia from Wikipedia. Wikipedia is the encyclopedia; Wikimedia is the broader movement and project ecosystem, including Wikipedia, Wikimedia Commons, Wikidata, Wiktionary, Wikisource, and Wikiquote. The user group organizes people and projects around Igbo language and culture across that wider ecosystem.
+The group's activities are therefore not limited to writing encyclopedia articles. They include language data, pronunciation recordings, structured knowledge, digitized texts, images, technical cleanup, and the development of contributors and local communities.
+Core public sources
+•	Official organizational profile — History, objectives, membership information, historical team listings, and contact details.
+•	Official events directory — Year-by-year activities and project pages.
+3. Founding History and Recognition
+The official profile identifies the Wikipedia Igbo Women Edit-a-thon Project in 2016 as the beginning of organized activity. The project aimed to improve representation of notable Igbo women on Igbo Wikipedia through the creation and translation of articles.
+The Wikimedia Affiliations Committee approved recognition of the group as a Wikimedia user group on 5 May 2018. The official profile lists the following people as founding members: Ozurumba Uzoma, Tochi Precious, Blossom Ozurumba, and Oby Ezeilo. The profile also identifies Tochi Precious and Blossom Ozurumba as designated Wikimedia Foundation contacts in that historical listing. These are historical records and do not confirm current roles.
+Development milestones
+•	2016 — The Wikipedia Igbo Women Edit-a-thon Project marks the beginning of organized activities described in the group's official history.
+•	5 May 2018 — Recognition as a Wikimedia user group is approved.
+•	2021 — The group reports selection of Igbo as a focus language for Wikidata lexicographical data and held its first Wikidata Igbo Lexemes Training on 10–11 July.
+•	2023 — Public reports show expanded activity in university outreach, translation, monuments, structured data, and Wikisource.
+•	2024–2026 — A multi-year General Support Fund grant supports a wider program of community and content activities.
+•	2025–2026 — Public activity reports increasingly emphasize maintenance, language data quality, audio documentation, and recurring technical training.
+4. Leadership, Membership, and Governance
+The official profile publishes a functional team structure. The names below reflect the published profile and must not be treated as a verified October 2026 leadership roster.
+Team	Published lead	Other listed members
+Programs	Lucy Iwuala	Tochi Precious; Hilary Ogali; Mark Lapang
+Communications	Chikerenma Ndubuka	Christian Martins; Amarachi Doris
+Event and Calendar Management	Senator Choko	AgnesAbah
+Partnerships	Ceslause	Sayvhior; Accuratecy051
+The public profile describes membership as open to people literate in Igbo at any level, including people outside southeastern Nigeria and members of the diaspora. Participation may include editing, translation, language review, photography, audio documentation, structured data, training, event coordination, communications, partnerships, and grant-supported projects.
+Draft by-laws and governance
+A public draft of proposed by-laws was last edited in December 2024. It discusses membership rights and responsibilities, a proposed board of two to five directors, one-year terms, elections, officer responsibilities, meetings, minutes, records, financial accountability, and access to organizational documents. A draft does not prove that the document was formally adopted.
+•	Draft by-laws
+To establish the current governance position, the key missing evidence is an adopted by-law version, recent election or appointment announcements, current meeting minutes, and a current list of authorized representatives.
+5. Wikimedia Projects and Workstreams
+Project / workstream	Typical work described in public records	Primary link
+Igbo Wikipedia	Creates and translates articles; improves citations, biographies, categorization, images, and coverage of Igbo people, history, language, and culture.	Open project
+
+Igbo Wiktionary	Documents words, definitions, grammatical information, dialectal variations, pronunciations, proverbs, and lexical material.	Open project
+
+Wikidata	Builds structured records for entities such as schools, academics, marketplaces, cemeteries, communities, and other topics; connects articles to machine-readable data.	Open project
+
+Wikimedia Commons	Stores freely licensed photographs, audio, video, and other media, including documentation of festivals, places, monuments, oral traditions, and spoken Igbo.	Open project
+
+Wikisource	Supports source texts, author pages, index pages, transcription, proofreading, and validation for digital access to books and documentary material.	Open project
+
+Igbo Wikiquote	Collects quotations and notable statements in Igbo. The 2026 activity list includes a 200-quotes challenge.	Open project
+
+Localization and language tools	The group's 2026 activities include work with Wikidata lexemes, Broomstick, Duplicity, and translatewiki-related localization.	Open project
+
+These descriptions explain the workstreams and should not be read as proof that every language project is equally active or that every linked site is fully developed. Current project health should be assessed from the live project, contribution histories, and recent reports.
+6. Timeline: 2016–2026
+Year	Publicly documented milestone
+2016	Origins in an Igbo women-focused edit-a-thon, with a goal of improving representation on Igbo Wikipedia.
+2018	Formal recognition as a Wikimedia user group on 5 May.
+2021	Focus on Wikidata lexicographical data; first Wikidata Igbo Lexemes Training on 10–11 July.
+2022	Campaigns and internal-grant mechanisms appear in the public activity and project records.
+2023	Reports cover university outreach, translation, Wiki Loves Monuments, structured data on marketplaces and cemeteries, and Wikisource author/index pages.
+2024	The group begins a multi-year General Support Fund program for 2024–2026; national Wikimedia collaboration and WikiConference Nigeria are documented.
+2025	Reports describe large aggregate output across multiple Wikimedia projects, recurring 72-hour edit-a-thons, language activism, and technical maintenance.
+2026	Public activities emphasize reference repair, dialectal variations, diacritics, lexeme training, proverbs and riddles, audio recordings, Wikiquote, and school clubs.
+•	Year-by-year events directory
+7. Review of 2023 Activities
+The 2023 activity record provides specific events and reported outputs, making it useful for examining the group's practical work. The figures below are the group's reported event outcomes and are not an independently audited count. The units differ: articles, edits, uploads, and pages are not interchangeable.
+Activity	Reported results	Significance
+Igbo Wiki Fan Club, Alvan meetup	17 editors registered; 25 articles created, 26 edited, and 26 edits reported.	Campus community development.
+World Poetry Day in Awka	24 editors; 156 articles created, 412 edited, and 614 total edits.	Literary and language representation.
+Translation into Igbo Wikipedia	24 editors; 143 articles created.	Expands Igbo-language coverage.
+Wiki Loves Monuments	781 uploads from 41 participants.	Visual documentation of cultural heritage.
+Nnamdi Azikiwe University outreach	About 49 attendees; around 72 articles translated and 11 Commons uploads reported.	University engagement and editor training.
+Nigerian marketplaces and cemeteries on Wikidata	33 dashboard participants and more than 4,092 edits.	Structured geographic and cultural data.
+Exploring Igbo Wikisource	3,220 author and index pages reported.	Digital source-library infrastructure.
+Introduction to Wikisource	601 author pages reported.	Training and source-text infrastructure.
+Making Igbo Academics Visible	54 articles created, 55 edited, and 237 edits reported.	Visibility for Nigerian academics.
+•	2023 activities report
+Patterns visible in the report include activity beyond encyclopedia writing, campus-based contributor recruitment, and a substantial Wikisource workstream. These patterns are interpretations of the published results, not independent measurements of long-term impact.
+8. Review of 2024 and 2025
+2024: wider programming and national collaboration
+The 2024–2026 grant proposal describes a multi-year program across education, culture and heritage, gender and diversity, community support, campaigns and contests, and technology development. Wikimedia User Group Nigeria's 2024 activity report describes collaboration with Igbo, Hausa, Yoruba, and Tyap communities on Wiki Loves Earth and WikiConference Nigeria. The national conference was held in Abuja on 12–14 September 2024, and the report identifies the Wikimedia Foundation as funder.
+•	Igbo Wikimedians 2024–2026 grant proposal
+•	Wikimedia User Group Nigeria — 2024 activities
+2025: scale and technical quality
+The group's 2024/2025 annual report describes activity during January–July 2025 and reports more than 15,000 pages, articles, entries, items, and files created across Igbo Wikipedia, Wikiquote, Wiktionary, Wikidata, Wikisource, and Wikimedia Commons. This is an aggregate across multiple kinds of contributions, not 15,000 new Wikipedia articles.
+•	72-hour virtual edit-a-thons: reported work included fixing reference errors, repairing broken files, localization, categorization, and biography maintenance.
+•	Nigerian census data and school visibility: work on Wikidata and OpenStreetMap, including efforts to improve the visibility of Nigerian secondary schools.
+•	Igbo-language digital activism: a two-day workshop with Rising Voices and Global Voices, with support from UNESCO Abuja, for members of university Wiki Fan Clubs.
+•	Language technology and localization: the program included Wikifunctions-related work on Igbo Wiktionary, translation activities, and capacity building.
+•	2024/2025 annual report and activities
+The public record includes differing event snapshots and reporting periods. Before aggregating results, check each event page's date, dashboard, and unit of measurement.
+9. Review of 2026 Activities
+The 2026 activity page shows recurring maintenance, language data quality, audio documentation, and training in specialized tools. The activities listed below are those described in the group's public reports.
+Recurring 72-hour virtual marathons
+Edition	Reference-error fixes reported	Biography pages receiving DEFAULTSORT or related maintenance
+January 2026	742	749
+March 2026	684	730
+May 2026	789	789
+July 2026	397	631
+The January edition also reported 117 Igbo Wikipedia article sitelinks added to Wikidata using Duplicity. The July edition included DEFAULTSORT and Databox template work. These are reported outcomes and should be checked against the linked event pages and underlying dashboards if they will be used in formal evaluation.
+Proverbs, riddles, and audio archives
+A 2026 project page describes a project launched online on 4 April, followed by a street and market interview challenge in Awka on 10 April. It reported 30 new Igbo proverbs added to Wiktionary, 50 audio recordings uploaded to Wikimedia Commons, English and Igbo captions/descriptions, a new Igbo Proverbs category on Commons, and engagement with community members at Eke Awka market.
+A separate project summary describes 11 registered contributors documenting 55 proverbs and 55 riddles, with audio recordings also uploaded. These may represent separate reporting snapshots or related components and should not automatically be added together.
+Wikidata lexemes and language data
+A training on improving Igbo lexemes using Broomstick was held online on 29 August 2026; the report lists 48 registrations and 35 attendees. Participants practiced forms, senses, grammatical features, and incomplete lexeme records. A session on 23 May reported 32 registrations and 27 attendees. Duplicity training reported 58 registrations, 50 attendees, and more than 50 Wikipedia-to-Wikidata linkages created or improved.
+A dictionary entry gives information about a word; a Wikidata lexeme represents structured linguistic information such as forms and senses. A sitelink connects a page on one Wikimedia project to the corresponding entity on another. Localization helps make software and interfaces usable in a particular language.
+Other listed 2026 programs
+•	Dialectal variation and standardization on Igbo Wiktionary.
+•	Improvement of Igbo content through diacritical marks.
+•	Enhancement of existing dictionary entries.
+•	FaithSpeaks: Christian Voices in Igbo Wikiquote.
+•	Asọmpi Okwu Narị Abụọ, a 200-quotes challenge.
+•	Audio documentation of Igbo words in the Ikwerre community.
+•	A student-club launch at Archbishop Heerey Technical College, Ogidi, Anambra State.
+•	Voices in our Hands: Kids in Sign Spaces.
+•	Political voices in Igbo.
+•	A Wiki Niger Delta Heritage Collective meetup.
+•	2026 activities
+10. Funding, Grants, and Financial Reporting
+Multi-year General Support Fund grant
+The Wikimedia Community Fund page records a grant period from 1 January 2024 to 31 December 2026 and a recommended amount of US$243,000. The page also records a request of ₦193,149,765, equivalent to approximately US$276,752 under the published conversion. The recommended amount is not proof that the entire sum was paid in one instalment, spent, or available as cash at a particular time.
+Published item	Amount / period
+Requested amount	₦193,149,765 (approximately US$276,752 as published)
+Recommended amount	US$243,000
+Grant period	1 January 2024 – 31 December 2026
+Program areas in the proposal
+•	Education: training, university activities, and contributor development.
+•	Culture, heritage, and GLAM: documentation of cultural heritage and collaboration with galleries, libraries, archives, and museums.
+•	Gender and diversity: improving representation and participation.
+•	Community support and engagement: volunteer development and community infrastructure.
+•	Campaigns and contests: edit-a-thons, translation drives, photography, and themed competitions.
+•	Technology and software development: technical work supporting Wikimedia projects and language resources.
+2024 financial reporting discrepancy
+The first-year grant report records total expenditure of ₦33,471,071.10 for 2024. However, displayed category figures of ₦28,800 for personnel, ₦1,900 for operations, and ₦50,300 for programmatic costs do not reconcile with the reported total. This is a discrepancy in the published online record. It should be checked against the original uploaded financial report or a corrected statement before the category figures are used for financial analysis.
+The report also states that the group had no other revenue sources for the reporting period. This should be understood as a statement in that report for that reporting period, not necessarily a permanent condition.
+Internal micro-grants
+The group's published internal-grant framework states a maximum grant of US$500 or its equivalent in naira. Eligible projects can include expanding Igbo Wikipedia and Wiktionary, improving content quality, promoting awareness of Wikimedia projects, and supporting Wikidata, Commons, Wikiquote, Wikisource, and related projects.
+The framework states that applicants should be active in the community online or offline, and proposals or reports may be submitted in English or Igbo. The application directory includes reporting links for the first and second halves of 2024, both halves of 2025, and the first and second quarters of 2026. This indicates a recurring small-grant mechanism but does not prove that every application was funded.
+•	Multi-year grant record
+•	2024 yearly report
+•	Internal grant framework and reporting directory
+11. Partnerships and External Relationships
+Partner / relationship	What public records describe
+Wikimedia Foundation and Wikimedia movement	The group has recognized-affiliate status and a published General Support Fund grant, and participates in movement-wide campaigns and training.
+Rising Voices and Global Voices	Named as partners in the 2025 digital language activism workshop.
+UNESCO Abuja	Identified in the 2025 report as a supporter of the two-day workshop organized with Rising Voices and Global Voices.
+Wikimedia User Group Nigeria	The national user-group network has worked with Igbo, Hausa, Yoruba, and Tyap communities on campaigns, contests, and the 2024 national conference.
+Universities and student clubs	Reports refer to Imo State University, Alvan Ikoku, Nnamdi Azikiwe University, the University of Nigeria, and other institutions.
+National Youth Council of Nigeria, Anambra South Senatorial Zone	Named in a 2025 training activity.
+The wider Nigerian Wikimedia ecosystem includes the Hausa Wikimedians User Group, Yoruba Wikimedians User Group, Tyap Wikimedians User Group, and Wikimedia User Group Nigeria. These are separate communities; collaboration does not make them subsidiaries of Igbo Wikimedians.
+A related Ikwerre community page describes an arm of the Igbo Wikimedians User Group focused on Wikimedia awareness and women's digital literacy.
+•	Wikimedia User Group Nigeria
+•	Ig Wikimedia Community, Ikwerre
+12. Community Development and Geographic Reach
+The public record suggests a model built around university fan clubs, local hubs, in-person outreach, virtual training, edit-a-thons, and language documentation. Campus-based groups help students learn editing and participate in campaigns; local meetups can recruit contributors unfamiliar with Wikimedia; online training makes participation possible across locations; and interviews/audio projects capture spoken language and expressions.
+The official profile lists an Abuja address associated with Cavic Nigeria, No. 30 Agadez Street, opposite Glo Office, off Aminu Kano Crescent, Wuse 2. This is a profile listing, not verified evidence of current occupancy; confirm before visiting. The profile publishes ndewo@wikimediaigbo.org and ndewoigbowiki@gmail.com as contact addresses in the public record; verify the exact addresses on the live profile before use.
+The public record shows that the group's activity is not limited to southeastern Nigeria: membership is described as open to Igbo-literate contributors regardless of location, and the group uses virtual programs alongside local activities.
+13. Independent Assessment: Evidence and Gaps
+Strongly documented in the public record
+•	Official recognition as a Wikimedia user group and a history dating back to 2016.
+•	Published activity reports across several years.
+•	Multiple Wikimedia project workstreams.
+•	Recurring virtual edit-a-thons and technical training.
+•	A published multi-year grant record and internal-grant framework.
+•	Public documentation of partnerships and community outreach.
+Requires further verification
+•	Current board membership and authorized representatives.
+•	Whether the draft by-laws were formally adopted or superseded.
+•	Current membership size and active-contributor retention.
+•	Complete, reconciled expenditure statements and supporting financial documents.
+•	Whether all planned grant activities were completed.
+•	Current operational status of each listed hub and student club.
+•	Current social-media reach and engagement.
+•	Whether event outcomes can be independently reproduced from dashboards and revision histories.
+Strategic opportunities suggested by the evidence
+•	Develop a searchable, openly licensed Igbo audio and pronunciation archive.
+•	Expand structured language data and dialect documentation.
+•	Improve long-term retention of trained editors.
+•	Strengthen institutional partnerships with libraries, universities, museums, and language departments.
+•	Publish consistent metrics distinguishing new content, quality improvements, active editors, and long-term impact.
+•	Improve financial-report consistency and make project-level outcomes easier to verify.
+These opportunities are analytical recommendations based on the documented program areas. They are not claims that the group has failed to address them.
+14. Recommended Further Investigation
+1.	Read every annual report and compare goals, output figures, participation, lessons learned, and changes in program strategy.
+2.	Examine each grant application and report. Compare requested and recommended funding, spending, planned activities, and delivered outcomes. Check whether the original financial attachments resolve the 2024 discrepancy.
+3.	Follow project links to event pages, Outreach Dashboard records, Commons categories, and actual contribution histories. Distinguish registrations from active participation and new content from maintenance.
+4.	Verify leadership and governance using recent election announcements, meeting minutes, adopted by-laws, and current authorized representatives.
+5.	Investigate partnerships using evidence from both the group's reports and the partner institutions' own publications.
+6.	Review the wider Wikimedia ecosystem, including Wikimedia Nigeria, Wikimedia Foundation, Wikidata, Commons, and language-preservation records for mentions of the group outside its own pages.
+7.	Check social-media accounts and public event announcements, including older posts that may not be indexed by search engines.
+8.	Record each claim in a research spreadsheet with the claim, source URL, publication/edit date, source type, evidence excerpt, verification status, and any conflicts between sources.
+15. Conclusion
+The public evidence describes an established community focused on increasing the representation of Igbo language and culture in digital knowledge. Its development can be traced from the 2016 women-focused Wikipedia project through formal recognition in 2018, expansion into structured data and Wikisource, multi-year grant-supported programming, and the 2026 focus on language data, audio documentation, article quality, and community training.
+The most useful starting points for serious research are the official profile, annual reports, multi-year grant record, year-by-year activities, internal-grant reports, and draft by-laws. Together, these provide a foundation for examining the group's history, programs, finances, governance, partnerships, and reported impact.
+This dossier is a comprehensive first-pass compilation, not a claim that every publicly available record has been exhausted. Social-media posts, every historical event page, individual contributor histories, external partner publications, and all underlying financial attachments have not been individually audited. A truly exhaustive investigation would require a systematic source-by-source review and direct verification of claims against the underlying records.
+Appendix A. Primary-Source Directory
+•	Official profile — History, mission, membership, historical team listings, contacts.
+•	Events directory — Year-by-year event and project pages.
+•	2023 activities — Event results and contribution counts.
+•	2026 activities — Current-year project and training records.
+•	Annual report index — Historical reports and annual summaries.
+•	2024–2026 grant — Grant request, recommendation, objectives, reporting.
+•	2024 yearly report — Reported spending and yearly outcomes.
+•	Internal grants — Micro-grant rules, applications, reporting links.
+•	Draft by-laws — Proposed governance framework.
+•	Partnerships — Published partnership directory.
+•	Meeting recordings — Recorded meetings, training, and presentations.
+•	Related category — Related Meta-Wiki pages and project discovery.
+•	Igbo Wikipedia — Live encyclopedia project.
+•	Igbo Wiktionary — Live dictionary project.
+•	Igbo Wikiquote — Live quotation project.
+•	Wikimedia User Group Nigeria — National community and collaboration context.
+Appendix B. Notes on Interpretation and Verification
+•	Reported results are attributed to the group's published records unless independently verified.
+•	Counts of pages, articles, edits, uploads, lexemes, and participants measure different things and should not be combined without a clear methodology.
+•	Registration counts are not the same as attendance, and attendance is not the same as sustained contribution.
+•	Grant recommendations, approved budgets, payments, and actual expenditures are distinct financial concepts.
+•	Historical staff or team listings should not be represented as the current leadership without a recent source.
+•	A draft governance document should not be represented as adopted unless the group publishes an adoption decision or final version.
+•	Financial inconsistencies should be reported as discrepancies in the public record, not interpreted as proof of wrongdoing without further evidence.
+•	Web pages can change. For formal academic, legal, or financial use, save dated copies or archival snapshots and record access dates.
