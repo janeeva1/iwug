@@ -1,5 +1,6 @@
 import {
   cmsPagesTable,
+  communityEventsTable,
   db,
   membershipTiersTable,
 } from "@workspace/db";
@@ -94,23 +95,45 @@ const starterTiers = [
   },
 ];
 
+const starterEvents = [
+  {
+    id: "wikidata-14th-birthday-igbo-2026",
+    titleEn: "Wikidata turns 14 — let’s celebrate together",
+    titleIg: "Wikidata gbara afọ 14 — ka anyị na-eme emume ọnụ",
+    descriptionEn:
+      "The Igbo Wikimedians User Group joins the global Wikidata 14th birthday celebration. We will vibe, connect, learn and share our Wikidata stories — recognising the achievements of our volunteers and welcoming new contributors. Virtual session: Friday, 16 October 2026 at 5:00 PM WAT. In-person celebration: Saturday, 17 October 2026 from 10:00 AM WAT, with introductions, a workshop, birthday quiz and games, cake cutting, and a closing group photo. Venues: Abuja (Enspire Hub, Merit House, Maitama) and Awka (Godwin Art Gallery, 9 Bishop Obiefuna Avenue). Languages: Igbo and English. Organised by the Igbo Wikimedians User Group.",
+    descriptionIg:
+      "Otu Ndị Igbo na-ede Ihe Ọmụma na-eso emume ncheta afọ 14 nke Wikidata n’ụwa niile. Anyị ga-ezukọ, jikọọ, mụta ihe ma kọọ akụkọ Wikidata anyị — na-ekele ndị ọrụ afọ ofufo anyị ma na-anabata ndị ọhụrụ. Nzukọ n’ịntanetị: Fraịde, 16 Ọktoba 2026 n’elekere 5:00 nke mgbede WAT. Emume n’ihu: Satọde, 17 Ọktoba 2026 malite n’elekere 10:00 nke ụtụtụ WAT, gụnyere iwebata onwe, klaasị ọrụ, ajụjụ na egwuregwu ncheta ọmụmụ, igbu achịcha, na foto otu na mmechi. Ebe: Abuja (Enspire Hub, Merit House, Maitama) na Awka (Godwin Art Gallery, 9 Bishop Obiefuna Avenue). Asụsụ: Igbo na Bekee. Ọ bụ Otu Ndị Igbo na-ede Ihe Ọmụma haziri ya.",
+    startsAt: new Date("2026-10-17T10:00:00+01:00"),
+    location: "Abuja & Awka, Nigeria · Online",
+    project: "Wikidata",
+    status: "upcoming" as const,
+    published: true,
+    reportUrl: null,
+  },
+];
+
 let seedPromise: Promise<void> | undefined;
 
 async function seedOnce(): Promise<void> {
-  const [existingPages, existingTiers] = await Promise.all([
+  const [existingPages, existingTiers, existingEvents] = await Promise.all([
     db.select({ slug: cmsPagesTable.slug }).from(cmsPagesTable),
     db.select({ id: membershipTiersTable.id }).from(membershipTiersTable),
+    db.select({ id: communityEventsTable.id }).from(communityEventsTable),
   ]);
 
   const pageSlugs = new Set(existingPages.map((row) => row.slug));
   const tierIds = new Set(existingTiers.map((row) => row.id));
+  const eventIds = new Set(existingEvents.map((row) => row.id));
 
   const pages = starterPages.filter((page) => !pageSlugs.has(page.slug));
   const tiers = starterTiers.filter((tier) => !tierIds.has(tier.id));
+  const events = starterEvents.filter((event) => !eventIds.has(event.id));
 
   const operations: Array<Promise<unknown>> = [];
   if (pages.length > 0) operations.push(db.insert(cmsPagesTable).values(pages));
   if (tiers.length > 0) operations.push(db.insert(membershipTiersTable).values(tiers));
+  if (events.length > 0) operations.push(db.insert(communityEventsTable).values(events));
 
   await Promise.all(operations);
 }
