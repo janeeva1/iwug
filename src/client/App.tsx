@@ -1,7 +1,7 @@
 import './site.css';
 import './auth-notice.css';
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useIsFetching, useIsMutating, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, Redirect, Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
 import { AuthProvider, useAuth, type AuthUser } from './auth';
 import { AdminContentPanel, SiteContentContextProvider, SITE_CONTENT_QUERY_KEY, buildSiteContentValue, fetchSiteContent, getContentValue, setContentLookup } from './site-content';
@@ -61,9 +61,12 @@ const projectFullName = (id: string, locale: Locale) => { const p = projectById(
 const projectUserUrl = (id: string, username: string) => { const p = projectById(id); return p ? `${p.userBase}${encodeURIComponent(username)}` : undefined; };
 const t = (locale: Locale, ig: string, en: string) => getContentValue(locale, ig, en).replace(/<br\s*\/?>/gi, '\n');
 type Theme = 'light' | 'dark';
-function useTheme() {
+type ThemeContextValue = { theme: Theme; toggle: () => void };
+const ThemeContext = createContext<ThemeContextValue>({ theme: 'light', toggle: () => {} });
+const useTheme = () => useContext(ThemeContext);
+function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
-    const stored = localStorage.getItem('igbo-theme');
+    const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('igbo-theme') : null;
     if (stored === 'light' || stored === 'dark') return stored;
     return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
@@ -73,7 +76,8 @@ function useTheme() {
     root.dataset.theme = theme;
     try { localStorage.setItem('igbo-theme', theme); } catch { /* ignore */ }
   }, [theme]);
-  return { theme, toggle: () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark')) };
+  const value = useMemo<ThemeContextValue>(() => ({ theme, toggle: () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark')) }), [theme]);
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 function ThemeToggle() {
   const { theme, toggle } = useTheme();
@@ -103,7 +107,9 @@ const localizeAdmin=(locale:Locale,text:string)=>locale==='ig'?(adminIg[text]??t
 const asError = (error: unknown) => error instanceof Error ? error.message : '';
 
 function BrandMark({ inverse = false }: { inverse?: boolean }) {
-  return <img className={`brand-logo ${inverse ? 'brand-inverse' : ''}`} src={`${basePath}/logo.svg`} alt="" aria-hidden="true" data-testid="brand-logo"/>;
+  const { theme } = useTheme();
+  const file = !inverse && theme === 'dark' ? 'logo-dark.svg' : 'logo.svg';
+  return <img className={`brand-logo ${inverse ? 'brand-inverse' : ''}`} src={`${basePath}/${file}`} alt="" aria-hidden="true" data-testid="brand-logo"/>;
 }
 function SiteHeader({ locale, setLocale }: { locale: Locale; setLocale: (v: Locale) => void }) {
   const [open, setOpen] = useState(false);
@@ -149,6 +155,30 @@ function ErrorNotice({ message, retry }: { message: string; retry?: () => void }
 function Skeleton({ rows = 3 }: { rows?: number }) {
   const locale=useLocale();
   return <div className="skeleton-stack" aria-label={t(locale,'Na-ebu ọdịnaya','Loading content')} data-testid="status-loading">{Array.from({length: rows}, (_, i) => <div className="skeleton-line" key={i} style={{width: `${94 - i * 11}%`}}/>)}</div>;
+}
+function GlobalLoading() {
+  const locale = useLocale();
+  const { theme } = useTheme();
+  const fetching = useIsFetching();
+  const mutating = useIsMutating();
+  const busy = fetching + mutating > 0;
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    if (busy) { setVisible(true); return; }
+    const id = window.setTimeout(() => setVisible(false), 250);
+    return () => window.clearTimeout(id);
+  }, [busy]);
+  if (!visible) return null;
+  const logo = theme === 'dark' ? 'logo-dark.svg' : 'logo.svg';
+  return <>
+    <div className="global-progress" role="progressbar" aria-hidden="true" data-testid="global-progress"><span/></div>
+    <div className="global-loading" role="status" aria-live="polite" data-testid="status-loading-overlay">
+      <div className="global-loading-card">
+        <span className="global-loading-spinner"><img src={`${basePath}/${logo}`} alt="" aria-hidden="true"/><i className="global-loading-ring"/></span>
+        <span className="global-loading-label">{t(locale,'Na-ebu','Loading')}</span>
+      </div>
+    </div>
+  </>;
 }
 
 function HomePage({ locale, setLocale }: { locale: Locale; setLocale: (v: Locale) => void }) {
@@ -764,7 +794,7 @@ function AuthRoutes({locale,setLocale}:{locale:Locale;setLocale:(v:Locale)=>void
       <Route component={()=> <NotFoundView locale={locale} setLocale={setLocale}/>}/>
     </Switch>;
 }
-function LocaleRoot(){const [locale,setLocale]=useState<Locale>(()=>localStorage.getItem('igbo-locale')==='en'?'en':'ig');const change=(value:Locale)=>{localStorage.setItem('igbo-locale',value);setLocale(value);};return <LocaleContext.Provider value={locale}><AuthRoutes locale={locale} setLocale={change}/></LocaleContext.Provider>;}
+function LocaleRoot(){const [locale,setLocale]=useState<Locale>(()=>localStorage.getItem('igbo-locale')==='en'?'en':'ig');const change=(value:Locale)=>{localStorage.setItem('igbo-locale',value);setLocale(value);};return <LocaleContext.Provider value={locale}><AuthRoutes locale={locale} setLocale={change}/><GlobalLoading/></LocaleContext.Provider>;}
 function projectsFromContent(items: Record<string, string>[] | undefined): ProjectItem[] {
   if (!items || items.length === 0) return defaultProjects;
   return items.map((it, i) => ({
@@ -799,5 +829,5 @@ function SiteContentRoot(){
   setContentLookup(value.lookup);
   return <SiteContentContextProvider value={value}><AuthProvider><WouterRouter base={basePath}><LocaleRoot/></WouterRouter></AuthProvider></SiteContentContextProvider>;
 }
-function App(){return <QueryClientProvider client={queryClient}><SiteContentRoot/></QueryClientProvider>;}
+function App(){return <QueryClientProvider client={queryClient}><ThemeProvider><SiteContentRoot/></ThemeProvider></QueryClientProvider>;}
 export default App;

@@ -43,6 +43,10 @@ app.use(attachUser);
 
 app.use("/api", router);
 
+app.use("/api", (_req, res) => {
+  res.status(404).json({ error: "Not found" });
+});
+
 const clientDir = path.join(import.meta.dirname, "public");
 if (fs.existsSync(clientDir)) {
   app.use(express.static(clientDir));
@@ -56,5 +60,28 @@ if (fs.existsSync(clientDir)) {
     });
   });
 }
+
+app.use(
+  (
+    err: unknown,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction,
+  ) => {
+    logger.error(
+      { err, method: req.method, url: req.url },
+      "Unhandled request error",
+    );
+    if (res.headersSent) {
+      return next(err);
+    }
+    res.status(500).json({
+      error:
+        err instanceof Error && err.message
+          ? err.message
+          : "Internal server error",
+    });
+  },
+);
 
 export default app;
