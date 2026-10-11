@@ -839,7 +839,12 @@ components:
         descriptionEn: { type: string }
         descriptionIg: { type: string }
         startsAt: { type: string, format: date-time }
+        endsAt: { type: ["string", "null"], format: date-time }
         location: { type: string }
+        venue: { type: ["string", "null"] }
+        latitude: { type: ["number", "null"] }
+        longitude: { type: ["number", "null"] }
+        imageUrl: { type: ["string", "null"], format: uri }
         project: { type: string }
         status: { type: string, enum: [upcoming, completed] }
         published: { type: boolean }
@@ -853,7 +858,12 @@ components:
         descriptionEn: { type: string }
         descriptionIg: { type: string }
         startsAt: { type: string, format: date-time }
+        endsAt: { type: ["string", "null"], format: date-time }
         location: { type: string }
+        venue: { type: ["string", "null"] }
+        latitude: { type: ["number", "null"] }
+        longitude: { type: ["number", "null"] }
+        imageUrl: { type: ["string", "null"], format: uri }
         project: { type: string }
         status: { type: string, enum: [upcoming, completed] }
         published: { type: boolean }

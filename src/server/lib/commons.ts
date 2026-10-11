@@ -26,7 +26,7 @@ interface CommonsPage {
 
 interface CommonsQueryResponse {
   query?: { pages?: CommonsPage[] };
-  continue?: { gcmcontinue?: string };
+  continue?: { gcmcontinue?: string; gsroffset?: number; continue?: string };
 }
 
 async function commonsGet(
@@ -76,7 +76,15 @@ export interface GalleryCategory {
   files: number;
 }
 
-type GalleryCategoryDef = Omit<GalleryCategory, "files">;
+type GalleryCategoryDef = Omit<GalleryCategory, "files"> & {
+  /**
+   * When set, gallery media is fetched with a Commons full-text search
+   * (the same index Special:MediaSearch uses) instead of category membership.
+   * This keeps the gallery aligned with what people get when they search
+   * Wikimedia Commons for the term.
+   */
+  search?: string;
+};
 
 export const GALLERY_CATEGORY_DEFS: GalleryCategoryDef[] = [
   { id: "user-group", category: "Igbo Wikimedians User Group", titleEn: "Igbo Wikimedians User Group", titleIg: "Otu Ndị Igbo Wikimedians", descriptionEn: "The whole body of work by the user group.", descriptionIg: "Ọrụ niile nke otu a.", featured: true },
@@ -92,16 +100,16 @@ export const GALLERY_CATEGORY_DEFS: GalleryCategoryDef[] = [
   { id: "wikidata-10", category: "Wikidata's 10th birthday Igwikidatahub", titleEn: "Wikidata 10th birthday", titleIg: "Ụbọchị ọmụmụ Wikidata nke iri", descriptionEn: "The Wikidata anniversary edit-a-thon.", descriptionIg: "Emume ncheta Wikidata.", featured: false },
   { id: "storytelling", category: "Igbo Storytelling Project", titleEn: "Igbo storytelling", titleIg: "Ịkọ akụkọ Igbo", descriptionEn: "Recorded Igbo stories and folklore.", descriptionIg: "Akụkọ na akụkọ ifo Igbo e dekọrọ.", featured: false },
   { id: "love-folklore", category: "Wiki Loves Folklore in the Igbo Community", titleEn: "Wiki Loves Folklore", titleIg: "Wiki Loves Folklore", descriptionEn: "Igbo folklore documented for the contest.", descriptionIg: "Akụkọ ifo Igbo e dekọrọ maka asọmpi.", featured: false },
-  { id: "igbo-culture", category: "Igbo culture", titleEn: "Igbo culture", titleIg: "Ọdịbendị Igbo", descriptionEn: "Traditions, ceremony and daily life.", descriptionIg: "Omenala, emume na ndụ ụbọchị.", featured: true },
-  { id: "igbo-people", category: "Igbo people", titleEn: "Igbo people", titleIg: "Ndị Igbo", descriptionEn: "Portraits and communities of Igbo people.", descriptionIg: "Foto na obodo ndị Igbo.", featured: false },
-  { id: "igbo-language", category: "Igbo language", titleEn: "Igbo language", titleIg: "Asụsụ Igbo", descriptionEn: "Writing, signage and language materials.", descriptionIg: "Ederede na ihe gbasara asụsụ Igbo.", featured: false },
-  { id: "igbo-cuisine", category: "Igbo cuisine", titleEn: "Igbo cuisine", titleIg: "Nri Igbo", descriptionEn: "Food, preparation and dishes.", descriptionIg: "Nri, nkwadebe na efere.", featured: false },
-  { id: "igbo-dance", category: "Igbo dance", titleEn: "Igbo dance", titleIg: "Egwu Igbo", descriptionEn: "Dance, movement and festival performance.", descriptionIg: "Egwu, mmegharị na egwuregwu emume.", featured: true },
-  { id: "igbo-tradition", category: "Igbo cultural heritage", titleEn: "Traditions & heritage", titleIg: "Ọdịnala na ihe nketa", descriptionEn: "Rituals, festivals and customary life.", descriptionIg: "Emume, oriri na ndụ ọdịnala.", featured: true },
-  { id: "igbo-attire", category: "Igbo cultural attire", titleEn: "Igbo attire", titleIg: "Uwe ọdịnala Igbo", descriptionEn: "Traditional dress, beads and adornment.", descriptionIg: "Uwe ọdịnala, ukwu na ihe ịchọ mma.", featured: true },
-  { id: "igbo-masquerade", category: "Igbo masks", titleEn: "Masquerades & masks", titleIg: "Mmanwụ na ihe nkpuchi", descriptionEn: "Masquerade traditions and carved masks.", descriptionIg: "Ọdịnala mmanwụ na ihe nkpuchi.", featured: false },
-  { id: "igbo-art", category: "Igbo art", titleEn: "Igbo art", titleIg: "Nkà Igbo", descriptionEn: "Sculpture, craft and visual art.", descriptionIg: "Ihe ọkpụkpụ, nkà aka na nkà anya.", featured: false },
-  { id: "igbo-music", category: "Igbo music", titleEn: "Igbo music", titleIg: "Egwu na abụ Igbo", descriptionEn: "Instruments, songs and performance.", descriptionIg: "Ngwa egwu, abụ na egwuregwu.", featured: false },
+  { id: "igbo-culture", category: "Igbo culture", titleEn: "Igbo culture", titleIg: "Ọdịbendị Igbo", descriptionEn: "Traditions, ceremony and daily life.", descriptionIg: "Omenala, emume na ndụ ụbọchị.", featured: true, search: "Igbo culture" },
+  { id: "igbo-people", category: "Igbo people", titleEn: "Igbo people", titleIg: "Ndị Igbo", descriptionEn: "Portraits and communities of Igbo people.", descriptionIg: "Foto na obodo ndị Igbo.", featured: false, search: "Igbo people" },
+  { id: "igbo-language", category: "Igbo language", titleEn: "Igbo language", titleIg: "Asụsụ Igbo", descriptionEn: "Writing, signage and language materials.", descriptionIg: "Ederede na ihe gbasara asụsụ Igbo.", featured: false, search: "Igbo language" },
+  { id: "igbo-cuisine", category: "Igbo cuisine", titleEn: "Igbo cuisine", titleIg: "Nri Igbo", descriptionEn: "Food, preparation and dishes.", descriptionIg: "Nri, nkwadebe na efere.", featured: false, search: "Igbo cuisine" },
+  { id: "igbo-dance", category: "Igbo dance", titleEn: "Igbo dance", titleIg: "Egwu Igbo", descriptionEn: "Dance, movement and festival performance.", descriptionIg: "Egwu, mmegharị na egwuregwu emume.", featured: true, search: "Igbo dance" },
+  { id: "igbo-tradition", category: "Igbo cultural heritage", titleEn: "Traditions & heritage", titleIg: "Ọdịnala na ihe nketa", descriptionEn: "Rituals, festivals and customary life.", descriptionIg: "Emume, oriri na ndụ ọdịnala.", featured: true, search: "Igbo cultural heritage" },
+  { id: "igbo-attire", category: "Igbo cultural attire", titleEn: "Igbo attire", titleIg: "Uwe ọdịnala Igbo", descriptionEn: "Traditional dress, beads and adornment.", descriptionIg: "Uwe ọdịnala, ukwu na ihe ịchọ mma.", featured: true, search: "Igbo traditional attire" },
+  { id: "igbo-masquerade", category: "Igbo masks", titleEn: "Masquerades & masks", titleIg: "Mmanwụ na ihe nkpuchi", descriptionEn: "Masquerade traditions and carved masks.", descriptionIg: "Ọdịnala mmanwụ na ihe nkpuchi.", featured: false, search: "Igbo masquerade" },
+  { id: "igbo-art", category: "Igbo art", titleEn: "Igbo art", titleIg: "Nkà Igbo", descriptionEn: "Sculpture, craft and visual art.", descriptionIg: "Ihe ọkpụkpụ, nkà aka na nkà anya.", featured: false, search: "Igbo art" },
+  { id: "igbo-music", category: "Igbo music", titleEn: "Igbo music", titleIg: "Egwu na abụ Igbo", descriptionEn: "Instruments, songs and performance.", descriptionIg: "Ngwa egwu, abụ na egwuregwu.", featured: false, search: "Igbo music" },
 ];
 
 const CATEGORY_BY_ID = new Map(GALLERY_CATEGORY_DEFS.map((entry) => [entry.id, entry]));
@@ -175,35 +183,50 @@ export async function getGalleryCategories(): Promise<GalleryCategory[]> {
   } catch {
     // Categories still render without counts when the API is unreachable.
   }
-  return GALLERY_CATEGORY_DEFS.map((def) => ({
+  return GALLERY_CATEGORY_DEFS.map(({ search: _search, ...def }) => ({
     ...def,
     files: counts.get(def.category) ?? 0,
   }));
 }
 
 /** A page of media from a curated Commons category. */
+/**
+ * Media for a gallery category. Categories with a `search` term use the
+ * Commons full-text index (the same one Special:MediaSearch reads) so the
+ * gallery matches what visitors see when they search Wikimedia Commons;
+ * the rest fall back to curated category membership.
+ */
 export async function getCategoryMedia(
-  category: string,
+  def: GalleryCategoryDef,
   cursor: string | undefined,
   limit: number,
 ): Promise<GalleryMediaPage> {
+  const searching = Boolean(def.search);
   const params: Record<string, string> = {
     action: "query",
-    generator: "categorymembers",
-    gcmtitle: `Category:${category}`,
-    gcmtype: "file",
-    gcmlimit: String(limit),
+    generator: searching ? "search" : "categorymembers",
     prop: "imageinfo",
     iiprop: "url|size|mime|extmetadata",
     iiurlwidth: "1280",
   };
-  if (cursor) params.gcmcontinue = cursor;
+
+  if (searching) {
+    params.gsrsearch = `${def.search} filetype:bitmap`;
+    params.gsrnamespace = "6";
+    params.gsrlimit = String(limit);
+    if (cursor) params.gsroffset = cursor;
+  } else {
+    params.gcmtitle = `Category:${def.category}`;
+    params.gcmtype = "file";
+    params.gcmlimit = String(limit);
+    if (cursor) params.gcmcontinue = cursor;
+  }
 
   let data: CommonsQueryResponse;
   try {
     data = await commonsGet(params);
   } catch {
-    return { category, items: [], nextCursor: null };
+    return { category: def.category, items: [], nextCursor: null };
   }
 
   const pages = Array.isArray(data.query?.pages) ? data.query.pages : [];
@@ -211,9 +234,11 @@ export async function getCategoryMedia(
     .map((page) => toMediaItem(page))
     .filter((item): item is CommonsMediaItem => item !== null);
 
-  return {
-    category,
-    items,
-    nextCursor: data.continue?.gcmcontinue ?? null,
-  };
+  const nextCursor = searching
+    ? data.continue?.gsroffset != null
+      ? String(data.continue.gsroffset)
+      : null
+    : data.continue?.gcmcontinue ?? null;
+
+  return { category: def.category, items, nextCursor };
 }

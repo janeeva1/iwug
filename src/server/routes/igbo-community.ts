@@ -142,7 +142,11 @@ function pageForApi(page: typeof cmsPagesTable.$inferSelect) {
 }
 
 function eventForApi(event: typeof communityEventsTable.$inferSelect) {
-  return { ...event, startsAt: event.startsAt.toISOString() };
+  return {
+    ...event,
+    startsAt: event.startsAt.toISOString(),
+    endsAt: event.endsAt ? event.endsAt.toISOString() : null,
+  };
 }
 
 function memberForApi(member: typeof membersTable.$inferSelect) {
@@ -347,8 +351,8 @@ router.post("/events", requireAdmin, async (req, res): Promise<void> => {
     return;
   }
   const input = parsed.data;
-  if (!isSafeHttpUrl(input.reportUrl ?? null)) {
-    res.status(400).json({ error: "Report links must use HTTP or HTTPS." });
+  if (!isSafeHttpUrl(input.reportUrl ?? null) || !isSafeHttpUrl(input.imageUrl ?? null)) {
+    res.status(400).json({ error: "Report and image links must use HTTP or HTTPS." });
     return;
   }
   const id = randomUUID();
@@ -384,8 +388,8 @@ router.patch("/events/:eventId", requireAdmin, async (req, res): Promise<void> =
     return;
   }
   const input = parsed.data;
-  if (!isSafeHttpUrl(input.reportUrl ?? null)) {
-    res.status(400).json({ error: "Report links must use HTTP or HTTPS." });
+  if (!isSafeHttpUrl(input.reportUrl ?? null) || !isSafeHttpUrl(input.imageUrl ?? null)) {
+    res.status(400).json({ error: "Report and image links must use HTTP or HTTPS." });
     return;
   }
 

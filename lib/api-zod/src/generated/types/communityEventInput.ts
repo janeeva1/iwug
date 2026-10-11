@@ -15,7 +15,17 @@ export interface CommunityEventInput {
   descriptionEn: string;
   descriptionIg: string;
   startsAt: Date;
+  /** @nullable */
+  endsAt?: Date | null;
   location: string;
+  /** @nullable */
+  venue?: string | null;
+  /** @nullable */
+  latitude?: number | null;
+  /** @nullable */
+  longitude?: number | null;
+  /** @nullable */
+  imageUrl?: string | null;
   project: string;
   status: CommunityEventInputStatus;
   published: boolean;

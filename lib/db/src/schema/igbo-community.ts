@@ -1,6 +1,7 @@
 import { createInsertSchema } from "drizzle-zod";
 import {
   boolean,
+  doublePrecision,
   integer,
   json,
   pgTable,
@@ -54,7 +55,12 @@ export const communityEventsTable = pgTable("community_events", {
   descriptionEn: text("description_en").notNull(),
   descriptionIg: text("description_ig").notNull(),
   startsAt: timestamp("starts_at", { withTimezone: true, mode: "date" }).notNull(),
+  endsAt: timestamp("ends_at", { withTimezone: true, mode: "date" }),
   location: text("location").notNull(),
+  venue: text("venue"),
+  latitude: doublePrecision("latitude"),
+  longitude: doublePrecision("longitude"),
+  imageUrl: text("image_url"),
   project: text("project").notNull(),
   status: text("status")
     .$type<"upcoming" | "completed">()

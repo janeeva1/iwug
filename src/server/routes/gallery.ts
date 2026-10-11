@@ -36,7 +36,7 @@ router.get("/gallery/media", async (req, res, next) => {
     const page = await withCache(
       cacheKeys.galleryMedia(def.category, cursor, limit),
       cacheTtl.short,
-      () => getCategoryMedia(def.category, cursor || undefined, limit),
+      () => getCategoryMedia(def, cursor || undefined, limit),
     );
 
     res.json({

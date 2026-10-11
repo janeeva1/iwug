@@ -206,7 +206,17 @@ export interface CommunityEvent {
   descriptionEn: string;
   descriptionIg: string;
   startsAt: string;
+  /** @nullable */
+  endsAt?: string | null;
   location: string;
+  /** @nullable */
+  venue?: string | null;
+  /** @nullable */
+  latitude?: number | null;
+  /** @nullable */
+  longitude?: number | null;
+  /** @nullable */
+  imageUrl?: string | null;
   project: string;
   status: CommunityEventStatus;
   published: boolean;
@@ -230,7 +240,17 @@ export interface CommunityEventInput {
   descriptionEn: string;
   descriptionIg: string;
   startsAt: string;
+  /** @nullable */
+  endsAt?: string | null;
   location: string;
+  /** @nullable */
+  venue?: string | null;
+  /** @nullable */
+  latitude?: number | null;
+  /** @nullable */
+  longitude?: number | null;
+  /** @nullable */
+  imageUrl?: string | null;
   project: string;
   status: CommunityEventInputStatus;
   published: boolean;

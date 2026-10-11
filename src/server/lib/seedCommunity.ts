@@ -105,7 +105,13 @@ const starterEvents = [
     descriptionIg:
       "Otu Ndị Igbo na-ede Ihe Ọmụma na-eso emume ncheta afọ 14 nke Wikidata n’ụwa niile. Anyị ga-ezukọ, jikọọ, mụta ihe ma kọọ akụkọ Wikidata anyị — na-ekele ndị ọrụ afọ ofufo anyị ma na-anabata ndị ọhụrụ. Nzukọ n’ịntanetị: Fraịde, 16 Ọktoba 2026 n’elekere 5:00 nke mgbede WAT. Emume n’ihu: Satọde, 17 Ọktoba 2026 malite n’elekere 10:00 nke ụtụtụ WAT, gụnyere iwebata onwe, klaasị ọrụ, ajụjụ na egwuregwu ncheta ọmụmụ, igbu achịcha, na foto otu na mmechi. Ebe: Abuja (Enspire Hub, Merit House, Maitama) na Awka (Godwin Art Gallery, 9 Bishop Obiefuna Avenue). Asụsụ: Igbo na Bekee. Ọ bụ Otu Ndị Igbo na-ede Ihe Ọmụma haziri ya.",
     startsAt: new Date("2026-10-17T10:00:00+01:00"),
+    endsAt: new Date("2026-10-17T15:00:00+01:00"),
     location: "Abuja & Awka, Nigeria · Online",
+    venue: "Enspire Hub, Merit House, Maitama, Abuja",
+    latitude: 9.0765,
+    longitude: 7.3986,
+    imageUrl:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/A_community_celebration_3.jpg/1280px-A_community_celebration_3.jpg",
     project: "Wikidata",
     status: "upcoming" as const,
     published: true,
