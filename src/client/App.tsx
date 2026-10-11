@@ -208,6 +208,7 @@ function HomePage({ locale, setLocale }: { locale: Locale; setLocale: (v: Locale
         </>}
         <p className="metric-note">{t(locale,'Ọnụọgụ ndị a sitere na nchịkọta sistemụ obodo; ha abụghị nyocha onwe ha nke Wikimedia.', 'Counts come from the community service summary; they are not an independent Wikimedia audit.')}</p>
       </div></section>
+      <CultureSlider locale={locale}/>
       <section className="story-section shell">
         <div className="section-index"><span className="eyebrow">{t(locale,'01 / IHE MERE O JI DỊ MKPA','01 / WHY THIS MATTERS')}</span><span className="section-index-mark">01</span></div>
         <div className="story-layout"><div className="story-heading"><h2 className="serif">{t(locale,'Ọdịnihu asụsụ<br/>dị n’aka anyị.','The future of a language<br/>is made together.')}</h2><p>{t(locale,'Mgbe anyị na-ede, na-atụgharị ma na-ese ihe, anyị na-eme ka ihe ọmụma gbasara ndụ ndị Igbo dị mfe ịchọta, kesaa, ma too.', 'Every article, recording and photograph makes knowledge of Igbo life easier to find, share and grow.')}</p><Link href="/projects" className="arrow-link" data-testid="link-story-projects">{t(locale,'Gaa hụ ihe anyị na-arụ','See what we’re making')}<ArrowUpRight size={16}/></Link></div>
@@ -239,7 +240,7 @@ const defaultCommonsPhotos: CommonsPhoto[] = [
     file:'https://commons.wikimedia.org/wiki/File:Igbo_Masquerade_in_Ezeagu.jpg',
   },
   {
-    src:'https://thumb.wikimedia.org/wikipedia/commons/thumb/2/24/Lagos_Igbo_Hangout_3.0_at_Festac%2C_Lagos_52.jpg/1280px-Lagos_Igbo_Hangout_3.0_at_Festac%2C_Lagos_52.jpg',
+    src:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Lagos_Igbo_Hangout_3.0_at_Festac%2C_Lagos_52.jpg/1280px-Lagos_Igbo_Hangout_3.0_at_Festac%2C_Lagos_52.jpg',
     altIg:'Nzukọ ndị Igbo na Festac, Lagos', altEn:'Lagos Igbo Hangout 3.0 at Festac, Lagos',
     titleIg:'Nzukọ ndị Igbo na Festac, Lagos', titleEn:'Lagos Igbo Hangout in Festac',
     author:'MediaMOF',
@@ -258,11 +259,104 @@ function EventRow({ event, locale }: { event: CommunityEvent; locale: Locale }) 
   const date = new Date(event.startsAt);
   return <article className="event-row" data-testid={`event-row-${event.id}`}><div className="event-date"><span>{Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString(locale === 'ig' ? 'ig-NG' : 'en-GB',{day:'2-digit'})}</span><small>{Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString(locale === 'ig' ? 'ig-NG' : 'en-GB',{month:'short'}).toUpperCase()}</small></div><div className="event-row-info"><span className="eyebrow">{event.project} · {event.location}</span><h3>{locale === 'ig' ? event.titleIg : event.titleEn}</h3></div><ArrowUpRight size={17}/></article>;
 }
+type CultureSlide = { hash: string; file: string; altIg: string; altEn: string; titleIg: string; titleEn: string; author: string; license: string };
+const commonsThumb = (hash: string, file: string, width = 1280) => `https://upload.wikimedia.org/wikipedia/commons/thumb/${hash}/${file}/${width}px-${file}`;
+const commonsFileUrl = (file: string) => `https://commons.wikimedia.org/wiki/File:${file}`;
+const cultureSlides: CultureSlide[] = [
+  { hash: '3/3b', file: 'A_community_festival_2.jpg', titleIg: 'Emume Iyom, Onitsha', titleEn: 'Iyom Festival, Onitsha', altIg: 'Ndị mmadụ na emume Iyom n’Onitsha', altEn: 'Crowd at the Iyom Festival in Onitsha', author: 'Goodymeraj', license: 'CC0' },
+  { hash: '1/1c', file: 'A_community_celebration_3.jpg', titleIg: 'Mmanwụ Ọkọnkọ na Atani', titleEn: 'Ọkọnkọ masquerade at Atani', altIg: 'Mmanwụ Ọkọnkọ na Atani Day', altEn: 'Ọkọnkọ masquerade at Atani Day', author: 'Goodymeraj', license: 'CC BY 4.0' },
+  { hash: '0/02', file: 'A_community_celebration_6.jpg', titleIg: 'Egwu Ojoojo na Atani', titleEn: 'Ojoojo dance troupe, Atani', altIg: 'Otu egwu Ojoojo na Atani', altEn: 'Ojoojo dance troupe at Atani', author: 'Goodymeraj', license: 'CC BY 4.0' },
+  { hash: '6/6b', file: 'Igbo_Masquerade_in_Ezeagu.jpg', titleIg: 'Mmanwụ ndị Igbo na Ezeagu', titleEn: 'Igbo masquerade in Ezeagu', altIg: 'Mmanwụ na Ezeagu', altEn: 'Masquerade in Ezeagu', author: 'Chuks Zilo', license: 'Wikimedia Commons' },
+  { hash: 'a/a6', file: 'A_maiden_and_her_companions.jpg', titleIg: 'Nwa agbọghọ na ndị enyi ya', titleEn: 'A maiden and her companions', altIg: 'Nwa agbọghọ Igbo na ndị enyi ya', altEn: 'An Igbo maiden and her companions', author: 'Anochili', license: 'CC BY-SA 4.0' },
+  { hash: 'b/b7', file: 'A_Royal_Attire.jpg', titleIg: 'Uwe eze ọdịnala Igbo', titleEn: 'A royal Igbo attire', altIg: 'Nwa okorobịa n’uwe ọdịnala Igbo', altEn: 'A young man in Igbo royal attire', author: 'RashyDon24', license: 'CC BY-SA 4.0' },
+  { hash: '6/67', file: 'Ayara_smoked_fish.jpg', titleIg: 'Azụ anwụrụ na akwụkwọ nri', titleEn: 'Smoked fish and garden egg', altIg: 'Azụ anwụrụ ọkụ na akwụkwọ nri', altEn: 'Smoked fish served with garden egg', author: 'Odi baby', license: 'CC BY-SA 4.0' },
+  { hash: '7/7b', file: '4TH_MEET_UP_IGBO_WIKTIONARY_EDIT_A_THON_4.jpg', titleIg: 'Nzukọ ndezi Wiktionary Igbo', titleEn: 'Igbo Wiktionary edit-a-thon', altIg: 'Ndị otu na nzukọ ndezi Wiktionary Igbo', altEn: 'Members at an Igbo Wiktionary edit-a-thon', author: 'Obihoja', license: 'CC BY-SA 4.0' },
+];
+
+function CultureSlider({ locale }: { locale: Locale }) {
+  const count = cultureSlides.length;
+  const [i, setI] = useState(0);
+  const hovering = useRef(false);
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    const id = window.setInterval(() => { if (!hovering.current) setI((v) => (v + 1) % count); }, 6000);
+    return () => window.clearInterval(id);
+  }, [count]);
+  const go = (n: number) => setI(((n % count) + count) % count);
+  return <section className="culture-slider" aria-labelledby="culture-slider-title" onMouseEnter={() => { hovering.current = true; }} onMouseLeave={() => { hovering.current = false; }}>
+    <div className="shell culture-slider-head">
+      <div><span className="eyebrow">{t(locale, 'ỌDỊBENDỊ NA NDỤ NDỊ MMADỤ', 'CULTURE IN PICTURES')}</span><h2 className="serif" id="culture-slider-title">{t(locale, 'Igbo na-ahụ anya, na-agba egwu, na-abi abụ.', 'Igbo is seen, danced and sung.')}</h2></div>
+      <div className="culture-slider-controls">
+        <button type="button" onClick={() => go(i - 1)} aria-label={t(locale, 'Nke gara aga', 'Previous slide')} data-testid="culture-prev"><ChevronLeft size={20}/></button>
+        <span className="culture-counter" data-testid="culture-counter">{String(i + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}</span>
+        <button type="button" onClick={() => go(i + 1)} aria-label={t(locale, 'Nke na-abịa', 'Next slide')} data-testid="culture-next"><ChevronRight size={20}/></button>
+      </div>
+    </div>
+    <div className="culture-stage" data-testid="culture-stage">
+      {cultureSlides.map((s, idx) => <div className={`culture-slide ${idx === i ? 'active' : ''}`} key={s.file} aria-hidden={idx !== i}>
+        <img className="culture-bg" src={commonsThumb(s.hash, s.file, 480)} alt="" aria-hidden="true" loading="lazy"/>
+        <a className="culture-figure" href={commonsFileUrl(s.file)} target="_blank" rel="noreferrer">
+          <img src={commonsThumb(s.hash, s.file)} alt={locale === 'ig' ? s.altIg : s.altEn} loading={Math.abs(idx - i) <= 1 ? 'eager' : 'lazy'}/>
+        </a>
+        <div className="culture-caption"><span className="culture-caption-title serif">{locale === 'ig' ? s.titleIg : s.titleEn}</span><span className="culture-credit">{t(locale, 'Foto', 'Photo')} <b>{s.author}</b> · {s.license}</span></div>
+      </div>)}
+    </div>
+    <div className="culture-dots">{cultureSlides.map((s, idx) => <button type="button" key={s.file} className={idx === i ? 'active' : ''} onClick={() => go(idx)} aria-label={t(locale, 'Gaa na foto', 'Go to photo')} data-testid={`culture-dot-${idx}`}/>)}</div>
+  </section>;
+}
+
+type PageVideo = { src: string; poster: string; titleIg: string; titleEn: string; author: string; license: string; file: string };
+const pageVideos: PageVideo[] = [
+  {
+    src: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/f/fe/Cultural_Day_Celebration_Dance_-_Igbo_Tribe_-_Imo%2C_Abia%2C_and_Ebonyi_State_-_Nigeria.webm/Cultural_Day_Celebration_Dance_-_Igbo_Tribe_-_Imo%2C_Abia%2C_and_Ebonyi_State_-_Nigeria.webm.480p.vp9.webm',
+    poster: commonsThumb('1/1c', 'A_community_celebration_3.jpg'),
+    titleIg: 'Egwu ụbọchị omenala nke ndị Igbo',
+    titleEn: 'Igbo cultural day dance',
+    author: 'Arch-Angel Raphael the Artist',
+    license: 'CC BY-SA 4.0',
+    file: 'https://commons.wikimedia.org/wiki/File:Cultural_Day_Celebration_Dance_-_Igbo_Tribe_-_Imo,_Abia,_and_Ebonyi_State_-_Nigeria.webm',
+  },
+  {
+    src: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/3/33/Beautiful_Igbo_cultural_dancers.webm/Beautiful_Igbo_cultural_dancers.webm.480p.vp9.webm',
+    poster: commonsThumb('a/a6', 'A_maiden_and_her_companions.jpg'),
+    titleIg: 'Ndị na-agba egwu Igbo',
+    titleEn: 'Igbo cultural dancers',
+    author: 'Akum20',
+    license: 'CC0',
+    file: 'https://commons.wikimedia.org/wiki/File:Beautiful_Igbo_cultural_dancers.webm',
+  },
+];
+
+function VideoBanner({ locale, video, kickerIg, kickerEn }: { locale: Locale; video: PageVideo; kickerIg: string; kickerEn: string }) {
+  return <figure className="video-banner" data-testid="video-banner" style={{ backgroundImage: `url(${video.poster})` }}>
+    <video className="video-banner-media" autoPlay muted loop playsInline preload="metadata" poster={video.poster} aria-hidden="true" tabIndex={-1}>
+      <source src={video.src} type="video/webm"/>
+    </video>
+    <div className="video-banner-scrim" aria-hidden="true"/>
+    <figcaption className="video-banner-caption shell">
+      <span className="eyebrow">{t(locale, kickerIg, kickerEn)}</span>
+      <span className="video-banner-title serif">{locale === 'ig' ? video.titleIg : video.titleEn}</span>
+      <span className="video-banner-credit">{t(locale, 'Vidiyo', 'Video')} <b>{video.author}</b> · {video.license} · <a href={video.file} target="_blank" rel="noreferrer">{t(locale, 'Wikimedia Commons', 'Wikimedia Commons')}</a></span>
+    </figcaption>
+  </figure>;
+}
+
+function PagePhotoStrip({ locale, slides, kickerIg, kickerEn }: { locale: Locale; slides: CultureSlide[]; kickerIg: string; kickerEn: string }) {
+  return <div className="page-photo-strip" data-testid="page-photo-strip">
+    <span className="eyebrow">{t(locale, kickerIg, kickerEn)}</span>
+    <div className="page-photo-strip-grid">{slides.map((s) => <a className="page-photo" key={s.file} href={commonsFileUrl(s.file)} target="_blank" rel="noreferrer">
+      <img src={commonsThumb(s.hash, s.file, 640)} alt={locale === 'ig' ? s.altIg : s.altEn} loading="lazy"/>
+      <span className="page-photo-label">{locale === 'ig' ? s.titleIg : s.titleEn}</span>
+    </a>)}</div>
+  </div>;
+}
+
 function ProjectsPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Locale) => void }) {
   const summary = useGetCommunitySummary();
   const pages = useListPages();
   return <PageFrame locale={locale} setLocale={setLocale}><main className="inner-page shell">
     <div className="page-kicker"><Wordmark/><span>01—{String(projects.length).padStart(2,'0')}</span></div><h1 className="serif inner-title">{t(locale,'Ebe anyị na-edekọ<br/>ihe ọmụma.','Places where we<br/>write knowledge.')}</h1><p className="inner-lede">{t(locale,'Ọrụ Wikimedia na-eme ka onye ọ bụla nwee ike isonye. Nyochaa ebe anyị na-arụ ọrụ ma họrọ ebe okwu gị ga-aba uru.', 'Wikimedia projects invite everyone to take part. Explore the places we work and find where your voice belongs.')}</p>
+    <PagePhotoStrip locale={locale} slides={cultureSlides.slice(0, 4)} kickerIg="ỌDỊBENDỊ ANYỊ N'ANYA" kickerEn="OUR CULTURE, IN VIEW"/>
     {summary.error && <ErrorNotice message={asError(summary.error)} retry={() => summary.refetch()}/>}
     <div className="directory-grid">{projects.map((project, i)=><a className={`directory-card directory-${i}`} href={project.url} target="_blank" rel="noreferrer" key={project.id} data-testid={`directory-project-${project.id}`}><div className="directory-top"><span className="project-glyph">{project.mark}</span><span className="eyebrow">WIKIMEDIA / {String(i+1).padStart(2,'0')}</span><ArrowUpRight size={17}/></div><h2 className="serif">{project.name}</h2><p>{locale === 'ig' ? project.detailIg : project.detailEn}</p><span className="directory-action">{t(locale,'Gaa n’ọrụ ahụ','Visit project')}<ExternalLink size={13}/></span></a>)}</div>
     <div className="directory-footnote"><ShieldCheck size={17}/><p>{t(locale,'Ọrụ ndị a bụ akụkụ nke ezinụlọ Wikimedia. Ihe ọmụma onye ọ bụla kesara na-agbaso iwu ọrụ ọ bụla.', 'These projects belong to the wider Wikimedia movement. Contributions are subject to each project’s community policies.')}</p></div>
@@ -274,6 +368,7 @@ function EventsPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Loca
   const items = (events.data ?? []).filter(e=>e.published).sort((a,b)=>new Date(a.startsAt).getTime()-new Date(b.startsAt).getTime());
   return <PageFrame locale={locale} setLocale={setLocale}><main className="inner-page shell">
     <div className="page-kicker"><Wordmark/><span>GATHER · LEARN · CONTRIBUTE</span></div><h1 className="serif inner-title">{t(locale,'Ka anyị zute<br/>n’ọrụ ọnụ.','Good work happens<br/>in good company.')}</h1><p className="inner-lede">{t(locale,'Nzukọ, mmemme ide ihe na ohere ịmụkọ ihe ọnụ. Onye mbido na onye nwere ahụmịhe — unu abụọ dị mkpa.', 'Meet-ups, edit-a-thons and moments of shared learning. First-time editors and experienced contributors both belong here.')}</p>
+    <VideoBanner locale={locale} video={pageVideos[0]} kickerIg="EGWU NA NZUKỌ" kickerEn="DANCE AND GATHERING"/>
     {events.isLoading ? <Skeleton rows={4}/> : events.error ? <ErrorNotice message={asError(events.error)} retry={()=>events.refetch()}/> : items.length ? <div className="events-list">{items.map((e,i)=><div className="event-large" key={e.id} data-testid={`event-card-${e.id}`}><div className="event-big-date"><span>{new Date(e.startsAt).toLocaleDateString(locale==='ig'?'ig-NG':'en-GB',{day:'2-digit'})}</span><small>{new Date(e.startsAt).toLocaleDateString(locale==='ig'?'ig-NG':'en-GB',{month:'long',year:'numeric'})}</small></div><div className="event-big-main"><div className="event-tags"><span>{e.status==='upcoming'?t(locale,'NA-ABỊA','UPCOMING'):t(locale,'EMECHARA','COMPLETED')}</span><span>{e.project}</span></div><h2 className="serif">{locale==='ig'?e.titleIg:e.titleEn}</h2><p>{locale==='ig'?e.descriptionIg:e.descriptionEn}</p><div className="event-meta"><span><MapPin size={14}/>{e.location}</span><span><CalendarDays size={14}/>{new Date(e.startsAt).toLocaleTimeString(locale==='ig'?'ig-NG':'en-GB',{hour:'2-digit',minute:'2-digit'})}</span></div>{e.reportUrl&&<a className="arrow-link event-report" href={e.reportUrl} target="_blank" rel="noreferrer">{t(locale,'Gụọ akụkọ','Read the report')}<ArrowUpRight size={15}/></a>}</div><span className="event-count">{String(i+1).padStart(2,'0')}</span></div>)}</div> : <div className="empty-feature"><CalendarDays size={32}/><span className="eyebrow">THE NEXT PAGE IS YOURS</span><h2 className="serif">{t(locale,'Obodo na-ahazi nzukọ ọzọ.','The community is planning its next gathering.')}</h2><p>{t(locale,'Enweghị mmemme e bipụtara ugbu a. Banye n’òtù ka ị nụ banyere ohere ndị na-abịa.', 'There are no published events at the moment. Join the community to hear when new opportunities arrive.')}</p><Link className="btn-primary" href="/join" data-testid="button-events-join">{t(locale,'Banye n’ọrụ','Join the work')}<ArrowRight size={16}/></Link></div>}
   </main></PageFrame>;
 }
@@ -297,6 +392,7 @@ function CommunityPage({ locale, setLocale }: { locale: Locale; setLocale: (v: L
   return <PageFrame locale={locale} setLocale={setLocale}><main className="inner-page shell">
     <div className="page-kicker"><Wordmark/><span>CONTRIBUTORS / NDỊ NYERE AKA</span></div>
     <h1 className="serif inner-title">{t(locale,'Ọrụ ndị otu anyị,<br/>n’ihu ọha.','Our members’ work,<br/>out in the open.')}</h1>
+    <PagePhotoStrip locale={locale} slides={[cultureSlides[7], cultureSlides[1], cultureSlides[2], cultureSlides[4]]} kickerIg="NDỊ OME IHE / PEOPLE AT WORK" kickerEn="THE PEOPLE BEHIND THE WORK"/>
     <p className="inner-lede">{t(locale,'Ndị otu anyị na-ede, na-atụgharị ma na-ese ihe n’ọrụ Wikimedia dị iche iche. Naanị ndị otu nyere nkwenye ka e gosiri ebe a — aha njirimara na ngụkọta onyinye ha n’otu ọrụ ọ bụla.','Our members write, translate and share across the Wikimedia projects. Only members who opted in appear here — their usernames and per-project contribution totals.')}</p>
     {query.isLoading?<Skeleton rows={4}/>:query.error?<ErrorNotice message={asError(query.error)} retry={()=>query.refetch()}/>:contributors.length?<>
       <div className="metrics-grid contributor-metrics" data-testid="contributor-metrics">
@@ -452,6 +548,7 @@ function JoinPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Locale
   const hasFreeTier=activeTiers.some(x=>x.priceNgn===0);
   const submit=(ev:FormEvent)=>{ev.preventDefault(); if(!isSignedIn||!tier||!selectedTier)return; if(paidTier&&!checkoutReady){setPayError(t(locale,'Ịkwụ ụgwọ n’ịntanetị adịghị ugbu a.','Online checkout is not configured yet.'));return;} setPayError(''); register.mutate({data:{displayName,location,tierId:tier,shareWikiStats:consent,wikiAccounts:Object.entries(accounts).filter(([,username])=>username.trim()).map(([project,username])=>({project:project as WikimediaAccount['project'],username:username.trim()}))}}, {onSuccess:()=>{ cache.invalidateQueries({queryKey:getGetMyMembershipQueryKey()});cache.invalidateQueries({queryKey:getListMembersQueryKey()});cache.invalidateQueries({queryKey:getGetCommunityContributorsQueryKey()});if(paidTier){initializePayment({purpose:'membership',tierId:selectedTier.id}).then(r=>{window.location.href=r.authorizationUrl;}).catch(err=>{setPayError(err instanceof Error?err.message:t(locale,'Enweghị ike ịmalite ịkwụ ụgwọ.','Could not start checkout.'));setDone(true);});}else{setDone(true);}}});};
   return <PageFrame locale={locale} setLocale={setLocale}><main className="inner-page join-page shell"><div className="page-kicker"><Wordmark/><span>MEMBERSHIP / ỊBỊ N’ỌTÚ</span></div><div className="join-intro"><div><h1 className="serif inner-title">{t(locale,'Bịa dịka ị dị.<br/>Soro n’ọrụ a.','Bring what you know.<br/>Find what you can grow.')}</h1><p className="inner-lede">{t(locale,'Ịbụ onye otu pụtara isonye n’obodo na-eme ka asụsụ Igbo pụta ìhè na Wikimedia. Kọwaa onwe gị n’ụzọ dị gị mma.', 'Membership connects you to a community making Igbo visible across Wikimedia. Tell us a little about yourself, in your own way.')}</p></div><div className="join-aside"><span className="eyebrow">A NOTE BEFORE YOU BEGIN</span><p>{t(locale,'A ga-egosipụta naanị ụgwọ ndị otu a haziri n’ezie. Ọ bụrụ na ọnweghị nhọrọ dị, biko kpọtụrụ obodo.', 'Only configured membership options appear here. If no option is available, please contact the community.')}</p></div></div>
+    <VideoBanner locale={locale} video={pageVideos[1]} kickerIg="EGWU NDỊ IGBO" kickerEn="IGBO DANCE, IN MOTION"/>
     {done ? <div className="success-panel" data-testid="status-registration-success"><span className="success-mark"><Check/></span><span className="eyebrow">EDEBANYERE / RECEIVED</span><h2 className="serif">{t(locale,'Daalụ maka ịbịa.','Thank you for stepping in.')}</h2><p>{t(locale,'E zigara arịrịọ otu gị. Ọkwa gị nwere ike ichere nyocha ndị nchịkwa obodo.', 'Your membership request was received. Your status may remain pending while community administrators review it.')}</p><Link href="/member" className="btn-primary" data-testid="button-member-portal">{t(locale,'Gaa na oghere m','Go to my space')}<ArrowRight size={16}/></Link></div>
     : <form className="join-form" onSubmit={submit}>
       <div className="join-step"><div className="step-no">01</div><div className="step-body"><span className="eyebrow">{t(locale,'HỌRỌ Ọ̀TÚ','CHOOSE A MEMBERSHIP')}</span><h2 className="serif">{t(locale,'Ụzọ isonye','A way to belong')}</h2>

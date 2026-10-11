@@ -229,7 +229,7 @@
 .gallery-stage{position:relative;overflow:hidden;background:#dfe0d4;aspect-ratio:16/9;border:1px solid hsl(var(--border))}
 .gallery-track{display:flex;height:100%;will-change:transform;transition:transform .65s cubic-bezier(.22,.72,.18,1)}
 .gallery-slide{position:relative;flex:0 0 100%;width:100%;height:100%;border:0;padding:0;background:#0f1f1a;cursor:zoom-in;overflow:hidden}
-.gallery-slide img{width:100%;height:100%;object-fit:cover;display:block}
+.gallery-slide img{width:100%;height:100%;object-fit:contain;display:block}
 .gallery-caption{position:absolute;left:0;right:0;bottom:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;padding:18px 20px;background:linear-gradient(0deg,rgba(12,30,24,.85),rgba(12,30,24,0));color:#f3f0e6;pointer-events:none}
 .gallery-caption-title{font-family:var(--app-font-serif);font-size:16px;line-height:1.2;text-shadow:0 1px 2px rgba(0,0,0,.45)}
 .gallery-caption small{font-family:var(--app-font-mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:#cfe0d5;white-space:nowrap}
@@ -285,3 +285,67 @@ html.dark .global-loading-card{box-shadow:0 26px 70px rgb(0 0 0 / .55)}
 @keyframes global-spin{to{transform:rotate(360deg)}}
 @keyframes global-pulse{0%,100%{opacity:1}50%{opacity:.55}}
 .global-loading-label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:hsl(var(--muted-foreground))}
+
+/* Theme-aware site background (freely licensed, Wikimedia Commons) */
+body{background-image:linear-gradient(hsl(var(--background)/.95),hsl(var(--background)/.95)),url('https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/A_maiden_and_her_companions.jpg/1600px-A_maiden_and_her_companions.jpg');background-size:cover;background-position:center;background-attachment:fixed;background-repeat:no-repeat}
+html.dark body{background-image:linear-gradient(hsl(var(--background)/.9),hsl(var(--background)/.9)),url('https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/A_community_festival_2.jpg/1600px-A_community_festival_2.jpg')}
+
+/* Home culture slider */
+.culture-slider{max-width:1420px;margin:0 auto;padding:88px 0 92px}
+.culture-slider-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:22px}
+.culture-slider-head h2{font-size:clamp(32px,4vw,50px);line-height:1.04;letter-spacing:-.04em;color:hsl(var(--primary));margin:12px 0 0;font-weight:550}
+.culture-slider-controls{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.culture-slider-controls button{width:44px;height:44px;border-radius:50%;border:1px solid hsl(var(--border));background:hsl(var(--card));color:hsl(var(--primary));display:grid;place-items:center;cursor:pointer;transition:background .2s,transform .2s}
+.culture-slider-controls button:hover{background:hsl(var(--secondary));transform:translateY(-1px)}
+.culture-counter{font-family:var(--app-font-mono);font-size:11px;letter-spacing:.08em;color:hsl(var(--muted-foreground));min-width:64px;text-align:center}
+.culture-stage{position:relative;aspect-ratio:16/7;overflow:hidden;border-radius:6px;background:#0f1f1a;border:1px solid hsl(var(--border))}
+.culture-slide{position:absolute;inset:0;opacity:0;transition:opacity .8s cubic-bezier(.2,.72,.18,1);pointer-events:none}
+.culture-slide.active{opacity:1;pointer-events:auto}
+.culture-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(30px) saturate(1.15);transform:scale(1.12)}
+.culture-figure{position:absolute;inset:0;display:block}
+.culture-figure img{width:100%;height:100%;object-fit:contain;display:block}
+.culture-caption{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:20px 22px;background:linear-gradient(180deg,transparent,rgba(9,26,20,.78));pointer-events:none}
+.culture-caption-title{font-size:clamp(17px,2vw,24px);color:#f4f2e8;letter-spacing:-.02em}
+.culture-credit{font-family:var(--app-font-mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:#cfe0d5;white-space:nowrap}
+.culture-credit b{color:#fff}
+.culture-dots{display:flex;justify-content:center;gap:9px;margin-top:16px}
+.culture-dots button{width:9px;height:9px;border-radius:50%;border:0;background:hsl(var(--border));cursor:pointer;padding:0;transition:transform .2s,background .2s}
+.culture-dots button.active{background:hsl(var(--accent));transform:scale(1.35)}
+
+/* Muted page-background video */
+.video-banner{position:relative;margin:30px 0 12px;overflow:hidden;border-radius:6px;background:#0f1f1a;aspect-ratio:16/6;border:1px solid hsl(var(--border));background-size:cover;background-position:center}
+.video-banner-media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.video-banner-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,26,20,.35),rgba(9,26,20,.82))}
+.video-banner-caption{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:8px;padding:26px 0 26px}
+.video-banner-caption .eyebrow{color:#d9e6dc}
+.video-banner-title{font-size:clamp(24px,3.2vw,40px);color:#f4f2e8;letter-spacing:-.03em;line-height:1.05}
+.video-banner-credit{font-family:var(--app-font-mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:#c3d6c9}
+.video-banner-credit b{color:#fff}
+.video-banner-credit a{color:#fff;text-decoration:underline;text-underline-offset:2px}
+
+/* Interior-page culture photo strip */
+.page-photo-strip{margin:32px 0 8px;display:grid;gap:13px}
+.page-photo-strip>.eyebrow{color:hsl(var(--muted-foreground))}
+.page-photo-strip-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.page-photo{position:relative;display:block;overflow:hidden;border-radius:6px;background:#e3e4d8;text-decoration:none;aspect-ratio:4/3}
+.page-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s cubic-bezier(.2,.72,.18,1)}
+.page-photo:hover img{transform:scale(1.05)}
+.page-photo-label{position:absolute;left:0;right:0;bottom:0;padding:24px 12px 10px;background:linear-gradient(180deg,transparent,rgba(9,26,20,.82));color:#f4f2e8;font-size:11px;line-height:1.3}
+.dark .page-photo{background:var(--surface-3)}
+
+@media(max-width:900px){
+  .culture-slider{padding:64px 0 66px}
+  .culture-stage{aspect-ratio:4/3}
+  .video-banner{aspect-ratio:4/3}
+  .page-photo-strip-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:640px){
+  .culture-slider-head{flex-direction:column;align-items:flex-start;gap:16px}
+  .culture-stage{aspect-ratio:1/1}
+  .culture-caption{flex-direction:column;gap:4px}
+  .video-banner{aspect-ratio:3/4}
+}
+@media(prefers-reduced-motion:reduce){
+  .culture-slide{transition:none}
+  .video-banner-media{display:none}
+}

@@ -96,6 +96,12 @@ export const GALLERY_CATEGORY_DEFS: GalleryCategoryDef[] = [
   { id: "igbo-people", category: "Igbo people", titleEn: "Igbo people", titleIg: "Ndị Igbo", descriptionEn: "Portraits and communities of Igbo people.", descriptionIg: "Foto na obodo ndị Igbo.", featured: false },
   { id: "igbo-language", category: "Igbo language", titleEn: "Igbo language", titleIg: "Asụsụ Igbo", descriptionEn: "Writing, signage and language materials.", descriptionIg: "Ederede na ihe gbasara asụsụ Igbo.", featured: false },
   { id: "igbo-cuisine", category: "Igbo cuisine", titleEn: "Igbo cuisine", titleIg: "Nri Igbo", descriptionEn: "Food, preparation and dishes.", descriptionIg: "Nri, nkwadebe na efere.", featured: false },
+  { id: "igbo-dance", category: "Igbo dance", titleEn: "Igbo dance", titleIg: "Egwu Igbo", descriptionEn: "Dance, movement and festival performance.", descriptionIg: "Egwu, mmegharị na egwuregwu emume.", featured: true },
+  { id: "igbo-tradition", category: "Igbo cultural heritage", titleEn: "Traditions & heritage", titleIg: "Ọdịnala na ihe nketa", descriptionEn: "Rituals, festivals and customary life.", descriptionIg: "Emume, oriri na ndụ ọdịnala.", featured: true },
+  { id: "igbo-attire", category: "Igbo cultural attire", titleEn: "Igbo attire", titleIg: "Uwe ọdịnala Igbo", descriptionEn: "Traditional dress, beads and adornment.", descriptionIg: "Uwe ọdịnala, ukwu na ihe ịchọ mma.", featured: true },
+  { id: "igbo-masquerade", category: "Igbo masks", titleEn: "Masquerades & masks", titleIg: "Mmanwụ na ihe nkpuchi", descriptionEn: "Masquerade traditions and carved masks.", descriptionIg: "Ọdịnala mmanwụ na ihe nkpuchi.", featured: false },
+  { id: "igbo-art", category: "Igbo art", titleEn: "Igbo art", titleIg: "Nkà Igbo", descriptionEn: "Sculpture, craft and visual art.", descriptionIg: "Ihe ọkpụkpụ, nkà aka na nkà anya.", featured: false },
+  { id: "igbo-music", category: "Igbo music", titleEn: "Igbo music", titleIg: "Egwu na abụ Igbo", descriptionEn: "Instruments, songs and performance.", descriptionIg: "Ngwa egwu, abụ na egwuregwu.", featured: false },
 ];
 
 const CATEGORY_BY_ID = new Map(GALLERY_CATEGORY_DEFS.map((entry) => [entry.id, entry]));
