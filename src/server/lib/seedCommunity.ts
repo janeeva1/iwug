@@ -48,6 +48,20 @@ const starterPages = [
       "Ndị obodo na-ede ma na-emezi Wikipedia Igbo na Wiktionary, na-etinye ihe ọmụma ahaziri n’ime Wikidata, na-ekesa onyonyo nwere ikike efu na Wikimedia Commons, ma na-anakọta okwu a ma ama na Wikiquote. Ọrụ dị iche iche nwere ike ịgbanwe; a na-enyocha njikọ ndị dị na saịtị a site na Wikimedia API dị ndụ.",
     published: true,
   },
+  {
+    slug: "by-laws",
+    titleEn: "By-laws of the Igbo Wikimedians User Group",
+    titleIg: "Iwu nke Otu Ndị Igbo Na-ede Ihe Ọmụma",
+    summaryEn:
+      "The rules that guide how our community is named, run, funded and changed.",
+    summaryIg:
+      "Iwu na-eduzi otú e si akpọ obodo anyị aha, otú o si arụ ọrụ, otú e si enweta ego na otú e si agbanwe ya.",
+    bodyEn:
+      "Article 1 · Name\nThe name of the group is the Igbo Wikimedians User Group.\nArticle 2 · Purpose\nThe group promotes the use of the Igbo language across Wikimedia projects and documents the culture, history and heritage of Igbo people as open knowledge.\nArticle 3 · Membership\nMembership is open to anyone who supports the aims of the group. It is free and voluntary, and members may leave at any time.\nArticle 4 · Leadership\nThe group is coordinated by volunteers who lead the programmes, communications, events and partnerships teams. Designated contacts represent the group to the Wikimedia Foundation.\nArticle 5 · Meetings\nGeneral meetings are held regularly, online and in person. Decisions are taken by consensus wherever possible.\nArticle 6 · Finances\nFunds and grants are used only for the activities of the group and are accounted for in the annual reports.\nArticle 7 · Amendments\nThese by-laws may be amended by a decision of the members at a general meeting.\nArticle 8 · Dissolution\nOn dissolution, remaining assets are handled in line with Wikimedia movement and affiliate rules.",
+    bodyIg:
+      "Nkeji 1 · Aha\nAha otu a bụ Otu Ndị Igbo Na-ede Ihe Ọmụma.\nNkeji 2 · Ebumnuche\nOtu a na-akwalite ojiji asụsụ Igbo n’ọrụ Wikimedia niile ma na-edekọ ọdịbendị, akụkọ ihe mere eme na ihe nketa ndị Igbo dịka ihe ọmụma efu.\nNkeji 3 · Ịbụ onye otu\nOnye ọ bụla na-akwado ebumnuche otu a nwere ike ịbụ onye otu. Ọ bụ n’efu na nke afọ ofufo, onye otu nwekwara ike ịpụ mgbe ọ bụla.\nNkeji 4 · Ndị na-edu ọrụ\nNdị ọrụ afọ ofufo na-edu otu mmemme, nzikọrịta ozi, mmemme na kalenda, na mmekọ. Ndị nnọchite anya na-anọchite otu a n’ihu Wikimedia Foundation.\nNkeji 5 · Nzukọ\nA na-enwe nzukọ izugbe mgbe niile, n’ịntanetị na n’ihu. A na-ekpebi ihe site na nkwekọrịta ebe o kwere omume.\nNkeji 6 · Ego\nA na-eji ego na onyinye eme naanị ọrụ otu a, a na-edekwara ha na akụkọ kwa afọ.\nNkeji 7 · Mgbanwe\nNdị otu nwere ike ịgbanwe iwu ndị a na nzukọ izugbe.\nNkeji 8 · Mgbasa\nMgbe a gbasasịrị otu a, a ga-ejikwa ihe ndị fọdụrụ mee ihe dịka iwu Wikimedia na ndị mmekọ si dị.",
+    published: true,
+  },
 ];
 
 const starterTiers = [
@@ -116,6 +130,126 @@ const starterEvents = [
     status: "upcoming" as const,
     published: true,
     reportUrl: null,
+  },
+  {
+    id: "content-creation-drive-2026",
+    titleEn: "2026 Igbo content creation drive",
+    titleIg: "Mgbasa ide ọdịnaya Igbo 2026",
+    descriptionEn:
+      "A year-long drive to create and improve Igbo-language articles and structured data across Wikipedia, Wikidata and Wikimedia Commons. Join the edit-a-thons, translate, add references, or upload photos.",
+    descriptionIg:
+      "Mgbasa otu afọ iji mepụta ma meziwanye akụkọ n’asụsụ Igbo na data ahaziri na Wikipedia, Wikidata na Wikimedia Commons. Soro na edit-a-thon, tụgharịa asụsụ, tinye ntụaka, ma ọ bụ bulite foto.",
+    startsAt: new Date("2026-03-01T09:00:00+01:00"),
+    endsAt: new Date("2026-12-31T18:00:00+01:00"),
+    location: "Online",
+    venue: null,
+    latitude: null,
+    longitude: null,
+    imageUrl: null,
+    project: "Wikipedia",
+    status: "upcoming" as const,
+    published: true,
+    reportUrl: null,
+  },
+  {
+    id: "igbo-wikidata-monthly-2026-10",
+    titleEn: "Igbo Wikidata monthly meet-up",
+    titleIg: "Nzukọ Wikidata Igbo kwa ọnwa",
+    descriptionEn:
+      "Our monthly online meet-up for Wikidata contributors. Beginners welcome — we cover one small skill each month and answer your questions.",
+    descriptionIg:
+      "Nzukọ anyị kwa ọnwa n’ịntanetị maka ndị na-enye Wikidata aka. Ndị mbido nabatara — anyị na-amụ otu nkà nta kwa ọnwa ma zaa ajụjụ gị.",
+    startsAt: new Date("2026-10-24T16:00:00+01:00"),
+    endsAt: new Date("2026-10-24T17:30:00+01:00"),
+    location: "Online",
+    venue: null,
+    latitude: null,
+    longitude: null,
+    imageUrl: null,
+    project: "Wikidata",
+    status: "upcoming" as const,
+    published: true,
+    reportUrl: null,
+  },
+  {
+    id: "igbo-editathon-abuja-2026-11",
+    titleEn: "Igbo edit-a-thon in Abuja",
+    titleIg: "Edit-a-thon Igbo na Abuja",
+    descriptionEn:
+      "An in-person edit-a-thon for new and experienced editors. Bring a laptop; we provide internet, guidance and a friendly room.",
+    descriptionIg:
+      "Edit-a-thon n’ihu maka ndị mbido na ndị nwere ahụmahụ. Weta laptọọpụ; anyị na-enye ịntanetị, ntuziaka na ebe enyi.",
+    startsAt: new Date("2026-11-14T10:00:00+01:00"),
+    endsAt: new Date("2026-11-14T15:00:00+01:00"),
+    location: "Abuja, Nigeria",
+    venue: "Cavic Nigeria, Wuse 2, Abuja",
+    latitude: 9.0765,
+    longitude: 7.3986,
+    imageUrl: null,
+    project: "Wikipedia",
+    status: "upcoming" as const,
+    published: true,
+    reportUrl: null,
+  },
+  {
+    id: "igbo-women-editathon-2016",
+    titleEn: "Igbo Women Edit-a-thon",
+    titleIg: "Edit-a-thon Ụmụ nwanyị Igbo",
+    descriptionEn:
+      "The drive that started it all — a 2016 edit-a-thon bringing more Igbo women and Igbo-language knowledge onto Wikimedia projects.",
+    descriptionIg:
+      "Mmemme malitere ihe niile — edit-a-thon nke 2016 wetara ọtụtụ ụmụ nwanyị Igbo na ihe ọmụma n’asụsụ Igbo n’ọrụ Wikimedia.",
+    startsAt: new Date("2016-03-05T10:00:00+01:00"),
+    endsAt: null,
+    location: "Abuja, Nigeria",
+    venue: null,
+    latitude: null,
+    longitude: null,
+    imageUrl: null,
+    project: "Wikipedia",
+    status: "completed" as const,
+    published: true,
+    reportUrl: null,
+  },
+  {
+    id: "wiki-20-igbo-2021",
+    titleEn: "Wikipedia at 20 — Igbo community meet-up",
+    titleIg: "Wikipedia gbara afọ 20 — nzukọ obodo Igbo",
+    descriptionEn:
+      "We marked Wikipedia’s 20th birthday with an online meet-up celebrating Igbo contributions and the people behind them.",
+    descriptionIg:
+      "Anyị mere emume ncheta afọ 20 Wikipedia site na nzukọ n’ịntanetị na-ekele onyinye Igbo na ndị kpatara ha.",
+    startsAt: new Date("2021-01-15T15:00:00+01:00"),
+    endsAt: null,
+    location: "Online",
+    venue: null,
+    latitude: null,
+    longitude: null,
+    imageUrl: null,
+    project: "Wikipedia",
+    status: "completed" as const,
+    published: true,
+    reportUrl: "https://meta.wikimedia.org/wiki/Igbo_Wikimedians_User_Group_2021_Report",
+  },
+  {
+    id: "1lib1ref-igbo-2024",
+    titleEn: "1Lib1Ref 2024 in Igbo",
+    titleIg: "1Lib1Ref 2024 n’asụsụ Igbo",
+    descriptionEn:
+      "Librarians and editors added citations to Igbo articles during the global #1Lib1Ref campaign.",
+    descriptionIg:
+      "Ndị ọba akwụkwọ na ndị nchịkọta tinyere ntụaka na akụkọ Igbo n’oge mgbasa #1Lib1Ref zuru ụwa ọnụ.",
+    startsAt: new Date("2024-02-20T09:00:00+01:00"),
+    endsAt: null,
+    location: "Online",
+    venue: null,
+    latitude: null,
+    longitude: null,
+    imageUrl: null,
+    project: "Wikipedia",
+    status: "completed" as const,
+    published: true,
+    reportUrl: "https://meta.wikimedia.org/wiki/Igbo_Wikimedians_User_Group_-_Annual_Report_2023/2024",
   },
 ];
 

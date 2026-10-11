@@ -71,6 +71,8 @@ export const contentGroupLabels: Record<string, LocalizedText> = {
 export const collectionGroupLabels: Record<string, LocalizedText> = {
   Projects: { en: "Wikimedia projects", ig: "Ọrụ Wikimedia" },
   Home: { en: "Home page", ig: "Peeji ụlọ" },
+  Organisation: { en: "Organisation", ig: "Ọgbakọ" },
+  Links: { en: "Links & social", ig: "Njikọ na soshal" },
 };
 
 const projectColumns: CollectionColumn[] = [
@@ -101,6 +103,47 @@ const timelineColumns: CollectionColumn[] = [
   { key: "title_ig", label: "Title · Igbo" },
   { key: "body_en", label: "Text · English", multiline: true },
   { key: "body_ig", label: "Text · Igbo", multiline: true },
+];
+
+const teamColumns: CollectionColumn[] = [
+  { key: "name", label: "Name" },
+  { key: "role_en", label: "Role · English" },
+  { key: "role_ig", label: "Role · Igbo" },
+  { key: "group_en", label: "Group · English" },
+  { key: "group_ig", label: "Group · Igbo" },
+  { key: "profile_url", label: "Profile URL" },
+];
+
+const socialColumns: CollectionColumn[] = [
+  { key: "label", label: "Label" },
+  { key: "url", label: "URL" },
+];
+
+const partnerColumns: CollectionColumn[] = [
+  { key: "name", label: "Name" },
+  { key: "url", label: "Website URL" },
+  { key: "description_en", label: "Note · English", multiline: true },
+  { key: "description_ig", label: "Note · Igbo", multiline: true },
+];
+
+const reportColumns: CollectionColumn[] = [
+  { key: "label_en", label: "Label · English" },
+  { key: "label_ig", label: "Label · Igbo" },
+  { key: "url", label: "URL" },
+];
+
+const grantColumns: CollectionColumn[] = [
+  { key: "label_en", label: "Label · English" },
+  { key: "label_ig", label: "Label · Igbo" },
+  { key: "period", label: "Period / note" },
+  { key: "url", label: "URL" },
+];
+
+const hubColumns: CollectionColumn[] = [
+  { key: "name", label: "Name" },
+  { key: "location_en", label: "Location · English" },
+  { key: "location_ig", label: "Location · Igbo" },
+  { key: "url", label: "URL" },
 ];
 
 export const siteCollections: SiteCollection[] = [
@@ -142,6 +185,115 @@ export const siteCollections: SiteCollection[] = [
     items: [
       { year: "2016", title_en: "Organized work began", title_ig: "Ọrụ haziri ahazi bidoro", body_en: "Volunteers came together to build Igbo-language content across Wikimedia.", body_ig: "Ndị ọrụ afọ ofufo jikọtara ọnụ iji wuo ọdịnaya Igbo na Wikimedia." },
       { year: "2018", title_en: "Recognized as a Wikimedia User Group", title_ig: "Nkwenye dịka Wikimedia User Group", body_en: "The community dossier records Wikimedia recognition in this year.", body_ig: "Akụkọ obodo kwuru na Wikimedia nyere otu a nkwenye n’afọ a." },
+    ],
+  },
+  {
+    id: "team",
+    group: "Organisation",
+    label: "Community leads & members",
+    itemLabel: "person",
+    columns: teamColumns,
+    items: [
+      { name: "Ozurumba Uzoma", role_en: "Founding member", role_ig: "Onye guzobere", group_en: "Founding members", group_ig: "Ndị guzobere", profile_url: "https://meta.wikimedia.org/wiki/User:Uzoma_Ozurumba" },
+      { name: "Tochi Precious", role_en: "Founding member", role_ig: "Onye guzobere", group_en: "Founding members", group_ig: "Ndị guzobere", profile_url: "https://meta.wikimedia.org/wiki/User:Tochiprecious" },
+      { name: "Blossom Ozurumba", role_en: "Founding member", role_ig: "Onye guzobere", group_en: "Founding members", group_ig: "Ndị guzobere", profile_url: "https://meta.wikimedia.org/wiki/User:Blossom_Ozurumba" },
+      { name: "Oby Ezeilo", role_en: "Founding member", role_ig: "Onye guzobere", group_en: "Founding members", group_ig: "Ndị guzobere", profile_url: "https://meta.wikimedia.org/wiki/User:Oby_Ezeilo" },
+      { name: "Tochi Precious", role_en: "Designated contact for the Wikimedia Foundation", role_ig: "Onye nnọchite anya Wikimedia Foundation", group_en: "Designated contacts", group_ig: "Ndị nnọchite anya", profile_url: "https://meta.wikimedia.org/wiki/User:Tochiprecious" },
+      { name: "Blossom Ozurumba", role_en: "Designated contact for the Wikimedia Foundation", role_ig: "Onye nnọchite anya Wikimedia Foundation", group_en: "Designated contacts", group_ig: "Ndị nnọchite anya", profile_url: "https://meta.wikimedia.org/wiki/User:Blossom_Ozurumba" },
+      { name: "Lucy Iwuala", role_en: "Lead", role_ig: "Onye ndu", group_en: "Programs team", group_ig: "Otu mmemme", profile_url: "https://meta.wikimedia.org/wiki/User:Lucy_Iwuala" },
+      { name: "Tochi Precious", role_en: "Member", role_ig: "Onye otu", group_en: "Programs team", group_ig: "Otu mmemme", profile_url: "https://meta.wikimedia.org/wiki/User:Tochiprecious" },
+      { name: "Hilary Ogali", role_en: "Member", role_ig: "Onye otu", group_en: "Programs team", group_ig: "Otu mmemme", profile_url: "https://meta.wikimedia.org/wiki/User:Ogalihillary" },
+      { name: "Mark Lapang", role_en: "Member", role_ig: "Onye otu", group_en: "Programs team", group_ig: "Otu mmemme", profile_url: "https://meta.wikimedia.org/wiki/User:Macocobovi" },
+      { name: "Chikerenma Ndubuka", role_en: "Lead", role_ig: "Onye ndu", group_en: "Communications team", group_ig: "Otu nzikọrịta ozi", profile_url: "https://meta.wikimedia.org/wiki/User:Keremzy" },
+      { name: "Christian Martins", role_en: "Member", role_ig: "Onye otu", group_en: "Communications team", group_ig: "Otu nzikọrịta ozi", profile_url: "https://meta.wikimedia.org/wiki/User:Matino183" },
+      { name: "Amarachi Doris", role_en: "Member", role_ig: "Onye otu", group_en: "Communications team", group_ig: "Otu nzikọrịta ozi", profile_url: "https://meta.wikimedia.org/wiki/User:Aminwa_21" },
+      { name: "Senator Choko", role_en: "Lead", role_ig: "Onye ndu", group_en: "Events & calendar team", group_ig: "Otu mmemme na kalenda", profile_url: "https://meta.wikimedia.org/wiki/User:Senator_Choko" },
+      { name: "Agnes Abah", role_en: "Member", role_ig: "Onye otu", group_en: "Events & calendar team", group_ig: "Otu mmemme na kalenda", profile_url: "https://meta.wikimedia.org/wiki/User:AgnesAbah" },
+      { name: "Ceslause Ogbonnaya", role_en: "Lead", role_ig: "Onye ndu", group_en: "Partnerships team", group_ig: "Otu mmekọ", profile_url: "https://meta.wikimedia.org/wiki/User:Ceslause" },
+      { name: "Sayvhior", role_en: "Member", role_ig: "Onye otu", group_en: "Partnerships team", group_ig: "Otu mmekọ", profile_url: "https://meta.wikimedia.org/wiki/User:Sayvhior" },
+      { name: "Accuratecy051", role_en: "Member", role_ig: "Onye otu", group_en: "Partnerships team", group_ig: "Otu mmekọ", profile_url: "https://meta.wikimedia.org/wiki/User:Accuratecy051" },
+    ],
+  },
+  {
+    id: "social_links",
+    group: "Links",
+    label: "Social media & website",
+    itemLabel: "link",
+    columns: socialColumns,
+    items: [
+      { label: "Website", url: "http://www.wikimediaigbo.org/" },
+      { label: "Email", url: "mailto:ndewo@wikimediaigbo.org" },
+      { label: "Facebook", url: "https://www.facebook.com/wikimediaigbo/" },
+      { label: "X (Twitter)", url: "http://twitter.com/wikimediaigbo/" },
+      { label: "Instagram", url: "http://www.instagram.com/wikimediaigbo/" },
+      { label: "LinkedIn", url: "https://www.linkedin.com/company/wikimediaigbo/" },
+      { label: "Telegram", url: "https://t.me/+ghpV_xCNGlQ4ZTlk/" },
+      { label: "WhatsApp", url: "https://chat.whatsapp.com/HVzLpLjIYmiE3v5uPLgEqP/" },
+    ],
+  },
+  {
+    id: "partners",
+    group: "Organisation",
+    label: "Partners & collaborators",
+    itemLabel: "partner",
+    columns: partnerColumns,
+    items: [
+      { name: "Global GLAM Calls", url: "https://meta.wikimedia.org/wiki/Global_GLAM_calls", description_en: "International galleries, libraries, archives and museums community.", description_ig: "Obodo mba ụwa nke ụlọ ngosi, ọba akwụkwọ, ebe nchekwa na ụlọ ihe ngosi nka." },
+      { name: "CapX", url: "https://capx.toolforge.org/home", description_en: "Capacity-building exchange for Wikimedia communities.", description_ig: "Ebe mmụta na ike inweta maka obodo Wikimedia." },
+      { name: "Rising Voices", url: "https://rising.globalvoices.org/", description_en: "Supporting citizen media in under-represented languages.", description_ig: "Na-akwado mgbasa ozi ụmụ amaala n’asụsụ ndị a na-adịghị ahụkarị." },
+      { name: "Global Voices", url: "https://globalvoices.org/", description_en: "A borderless community of writers, translators and researchers.", description_ig: "Obodo ndị ode akwụkwọ, ndị ntụgharị na ndị nyocha na-enweghị oke." },
+      { name: "Wikimedia Deutschland", url: "https://www.wikimedia.de", description_en: "Wikimedia chapter in Germany.", description_ig: "Ngalaba Wikimedia dị na Germany." },
+      { name: "Mira Foundation", url: "", description_en: "Community partner.", description_ig: "Mmekọ obodo." },
+      { name: "Cavic Nigeria", url: "", description_en: "Community partner and host of our Abuja space.", description_ig: "Mmekọ obodo na ebe anyị na Abuja." },
+      { name: "Adandiigbo Cultural Pageant", url: "", description_en: "Igbo cultural heritage partner.", description_ig: "Mmekọ ihe nketa ọdịbendị Igbo." },
+      { name: "Anambra State Ministry of Information and Public Enlightenment", url: "", description_en: "Government partner in Anambra State.", description_ig: "Mmekọ gọọmentị nke Anambra Steeti." },
+      { name: "Digipreneur Hub", url: "", description_en: "Digital skills partner.", description_ig: "Mmekọ nkà dijitalụ." },
+      { name: "Centre for Memories", url: "", description_en: "Igbo heritage and archive partner.", description_ig: "Mmekọ ihe nketa na ebe nchekwa Igbo." },
+      { name: "Equity Watch Initiative", url: "", description_en: "Civic partner.", description_ig: "Mmekọ obodo na ikike mmadụ." },
+    ],
+  },
+  {
+    id: "reports",
+    group: "Organisation",
+    label: "Annual reports",
+    itemLabel: "report",
+    columns: reportColumns,
+    items: [
+      { label_en: "2024/2025 report", label_ig: "Akụkọ 2024/2025", url: "https://meta.wikimedia.org/wiki/Igbo_Wikimedians_User_Group_-_Annual_Report_2024/2025" },
+      { label_en: "2023/2024 report", label_ig: "Akụkọ 2023/2024", url: "https://meta.wikimedia.org/wiki/Igbo_Wikimedians_User_Group_-_Annual_Report_2023/2024" },
+      { label_en: "2022/2023 report", label_ig: "Akụkọ 2022/2023", url: "https://meta.wikimedia.org/wiki/Igbo_Wikimedians_User_Group_-_Annual_Report_2022/2023" },
+      { label_en: "2021/2022 report", label_ig: "Akụkọ 2021/2022", url: "https://meta.wikimedia.org/wiki/Igbo_Wikimedians_User_Group_2021_Report" },
+      { label_en: "2020 report", label_ig: "Akụkọ 2020", url: "https://meta.wikimedia.org/wiki/Igbo_Wikimedians_User_Group/2020_Report" },
+      { label_en: "2019 report", label_ig: "Akụkọ 2019", url: "https://meta.wikimedia.org/wiki/Igbo_Wikimedians_User_Group/2019_Report" },
+      { label_en: "2020 community survey", label_ig: "Nnyocha obodo 2020", url: "https://meta.wikimedia.org/wiki/File:Igbo_Wikimedians_Community_Survey_report_2020.pdf" },
+    ],
+  },
+  {
+    id: "grants",
+    group: "Organisation",
+    label: "Internal grants",
+    itemLabel: "resource",
+    columns: grantColumns,
+    items: [
+      { label_en: "Apply for a micro-grant", label_ig: "Rịọ maka obere onyinye", period: "Up to 500 USD", url: "https://docs.google.com/forms/d/e/1FAIpQLSf4FHYwD3gmIyDYIgPYYq-yNCsl-tpKriDDAtrDVKu1678-Ow/viewform" },
+      { label_en: "Grant guidelines", label_ig: "Ntuziaka onyinye", period: "Eligibility & selection", url: "https://meta.wikimedia.org/wiki/Igbo_Wikimedians_User_Group/Projects/Proposals/Internal_Grant_Applications" },
+      { label_en: "Report your project", label_ig: "Kọọ ọrụ gị", period: "Micro-grant report form", url: "https://docs.google.com/forms/d/e/1FAIpQLSf4FHYwD3gmIyDYIgPYYq-yNCsl-tpKriDDAtrDVKu1678-Ow/viewform" },
+      { label_en: "2026 content drive dashboard", label_ig: "Ebe nlekọta ọrụ 2026", period: "Outreach Dashboard", url: "https://outreachdashboard.wmflabs.org/campaigns/igbo_wikimedians_user_group_2026_content_creation_drive/programs" },
+    ],
+  },
+  {
+    id: "hubs",
+    group: "Organisation",
+    label: "Hubs & fan clubs",
+    itemLabel: "hub",
+    columns: hubColumns,
+    items: [
+      { name: "Ig Wikidata Hub", location_en: "Online", location_ig: "N’ịntanetị", url: "https://meta.wikimedia.org/wiki/Ig_Wikidata_Hub" },
+      { name: "Ig Wiki Librarians Hub", location_en: "Online", location_ig: "N’ịntanetị", url: "https://meta.wikimedia.org/wiki/Ig_Wiki_Librarians_Hub" },
+      { name: "Ig Wiki Commons Hub", location_en: "Wikimedia Commons", location_ig: "Wikimedia Commons", url: "https://commons.wikimedia.org/wiki/Commons:IG_Commons_Hub" },
+      { name: "IG Wiki Hub Enugu", location_en: "Enugu, Nigeria", location_ig: "Enugu, Naịjirịa", url: "https://meta.wikimedia.org/wiki/IG_Wiki_Hub_Enugu" },
+      { name: "Igbo Wiki Fan Club, Alvan", location_en: "Alvan Ikoku, Owerri", location_ig: "Alvan Ikoku, Owerri", url: "https://meta.wikimedia.org/wiki/Igbo_Wiki_Fan_Club,_Alvan" },
+      { name: "EBSU IG Wiki Fan Club", location_en: "Ebonyi State University", location_ig: "Mahadum Ebonyi Steeti", url: "https://meta.wikimedia.org/wiki/Ebonyi_State_University_(EBSU)_IG_Wiki_Fan_Club" },
     ],
   },
 ];

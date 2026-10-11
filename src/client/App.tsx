@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type F
 import { QueryClient, QueryClientProvider, useIsFetching, useIsMutating, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
 import { AuthProvider, useAuth, type AuthUser } from './auth';
-import { AdminContentPanel, SiteContentContextProvider, SITE_CONTENT_QUERY_KEY, buildSiteContentValue, fetchSiteContent, getContentValue, setContentLookup } from './site-content';
+import { AdminContentPanel, SiteContentContextProvider, SITE_CONTENT_QUERY_KEY, buildSiteContentValue, fetchSiteContent, getContentValue, setContentLookup, useSiteContent } from './site-content';
 import { AdminPaymentsPanel, MEMBER_BILLING_QUERY_KEY, formatNgn, initializePayment, useMemberBilling, usePaymentConfig, useVerifyPayment } from './payments';
 import {
   ArrowDownRight, ArrowRight, ArrowUpRight, BookOpen, Check, ChevronDown,
@@ -118,6 +118,7 @@ function SiteHeader({ locale, setLocale }: { locale: Locale; setLocale: (v: Loca
     ['/', t(locale, 'Ụlọ', 'Home'), <Home key="i"/>], ['/projects', t(locale, 'Ọrụ anyị', 'Projects'), <Sparkles key="i"/>],
     ['/gallery', t(locale, 'Ọba foto', 'Gallery'), <Images key="i"/>], ['/dictionary', t(locale, 'Nkọwa okwu', 'Dictionary'), <BookOpen key="i"/>],
     ['/events', t(locale, 'Mmemme', 'Gatherings'), <CalendarDays key="i"/>], ['/community', t(locale, 'Ndị nyere aka', 'Contributors'), <UsersRound key="i"/>],
+    ['/about', t(locale, 'Banyere anyị', 'About'), <ShieldCheck key="i"/>], ['/contact', t(locale, 'Kpọtụrụ anyị', 'Contact'), <MapPin key="i"/>],
     ['/join', t(locale, 'Soro anyị', 'Join us'), <Heart key="i"/>],
   ];
   return <header className="site-header">
@@ -136,11 +137,16 @@ function SiteHeader({ locale, setLocale }: { locale: Locale; setLocale: (v: Loca
 }
 function SiteFooter({ locale }: { locale: Locale }) {
   const settings = useGetSiteSettings();
+  const { collections } = useSiteContent();
+  const social = collections.social_links ?? [];
   return <footer className="site-footer">
-    <div className="shell footer-top"><div className="footer-brand"><BrandMark inverse/><h3 className="serif">Okwu anyị.<br/>Ihe ọmụma anyị.</h3><p>{t(locale, 'Obodo jikọtara ọnụ iji chekwaa ma gbasaa ihe ọmụma n’asụsụ Igbo.', 'A community keeping knowledge in Igbo, open and alive for everyone.')}</p></div>
+    <div className="shell footer-top"><div className="footer-brand"><BrandMark inverse/><h3 className="serif">Okwu anyị.<br/>Ihe ọmụma anyị.</h3><p>{t(locale, 'Obodo jikọtara ọnụ iji chekwaa ma gbasaa ihe ọmụma n’asụsụ Igbo.', 'A community keeping knowledge in Igbo, open and alive for everyone.')}</p>
+      {social.length ? <div className="footer-social" data-testid="footer-social">{social.map((link, i) => <a key={i} href={link.url} target={link.url?.startsWith('mailto:') ? undefined : '_blank'} rel="noreferrer">{link.label}<ArrowUpRight size={12}/></a>)}</div> : null}
+    </div>
       <div className="footer-col"><span className="eyebrow">{t(locale,'CHỌGHARỊA','EXPLORE')}</span><Link href="/projects">{t(locale,'Ọrụ anyị','Projects')}</Link><Link href="/gallery">{t(locale,'Ọba foto','Gallery')}</Link><Link href="/dictionary">{t(locale,'Nkọwa okwu','Dictionary')}</Link><Link href="/events">{t(locale,'Mmemme','Gatherings')}</Link><Link href="/community">{t(locale,'Ndị nyere aka','Contributors')}</Link><Link href="/join">{t(locale,'Soro anyị','Become a member')}</Link></div>
-      <div className="footer-col"><span className="eyebrow">{t(locale,'KWADO','SUPPORT')}</span><Link href="/donate">{t(locale,'Kwado ọrụ a','Support our work')}</Link>{settings.data?.contactEmail ? <a href={`mailto:${settings.data.contactEmail}`}>{settings.data.contactEmail}</a> : <span className="footer-muted">{t(locale,'Nkọwa kọntaktị adịghị ugbu a','Contact information not configured')}</span>}{settings.data?.contactAddress ? <span className="footer-muted footer-address">{settings.data.contactAddress}</span> : null}</div>
-    </div><div className="shell footer-bottom"><span>© {new Date().getFullYear()} Igbo Wikimedians User Group</span><span>{t(locale,'Ihe ọmụma nke onye ọ bụla, n’asụsụ onye ọ bụla.','Knowledge for everyone, in everyone’s language.')}</span><a href="https://commons.wikimedia.org/wiki/File:Igbo_Wikimedians_User_Group_Logo.svg" target="_blank" rel="noreferrer" className="footer-credit">{t(locale,'Akara: Blossom Ozurumba · CC BY-SA 4.0','Logo: Blossom Ozurumba · CC BY-SA 4.0')}</a><Link href="/admin" data-testid="link-admin-footer">{t(locale,'Ndị nchịkwa','Admin')}</Link></div>
+      <div className="footer-col"><span className="eyebrow">{t(locale,'ỌGBAKỌ','ORGANISATION')}</span><Link href="/about">{t(locale,'Banyere anyị','About us')}</Link><Link href="/contact">{t(locale,'Kpọtụrụ anyị','Contact')}</Link><Link href="/partnerships">{t(locale,'Mmekọ','Partnerships')}</Link><Link href="/reports">{t(locale,'Akụkọ kwa afọ','Annual reports')}</Link><Link href="/grants">{t(locale,'Onyinye ime obodo','Grants')}</Link><Link href="/about/by-laws">{t(locale,'Iwu otu','By-laws')}</Link></div>
+      <div className="footer-col"><span className="eyebrow">{t(locale,'KWADO','SUPPORT')}</span><Link href="/donate">{t(locale,'Kwado ọrụ a','Support our work')}</Link>{settings.data?.contactEmail ? <a href={`mailto:${settings.data.contactEmail}`}>{settings.data.contactEmail}</a> : <span className="footer-muted">{t(locale,'Nkọwa kọntaktị adịghị ugbu a','Contact information not configured')}</span>}{settings.data?.contactAddress ? <span className="footer-muted footer-address">{settings.data.contactAddress}</span> : null}</div></div>
+    <div className="shell footer-bottom"><span>© {new Date().getFullYear()} Igbo Wikimedians User Group</span><span>{t(locale,'Ihe ọmụma nke onye ọ bụla, n’asụsụ onye ọ bụla.','Knowledge for everyone, in everyone’s language.')}</span><a href="https://commons.wikimedia.org/wiki/File:Igbo_Wikimedians_User_Group_Logo.svg" target="_blank" rel="noreferrer" className="footer-credit">{t(locale,'Akara: Blossom Ozurumba · CC BY-SA 4.0','Logo: Blossom Ozurumba · CC BY-SA 4.0')}</a><Link href="/admin" data-testid="link-admin-footer">{t(locale,'Ndị nchịkwa','Admin')}</Link></div>
   </footer>;
 }
 function PageFrame({ locale, setLocale, children }: { locale: Locale; setLocale: (v: Locale) => void; children: ReactNode }) {
@@ -327,12 +333,167 @@ function CultureSlider({ locale }: { locale: Locale }) {
 function ProjectsPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Locale) => void }) {
   const summary = useGetCommunitySummary();
   const pages = useListPages();
+  const { collections } = useSiteContent();
+  const hubs = collections.hubs ?? [];
   return <PageFrame locale={locale} setLocale={setLocale}><main className="inner-page shell">
     <div className="page-kicker"><Wordmark/><span>01—{String(projects.length).padStart(2,'0')}</span></div><h1 className="serif inner-title">{t(locale,'Ebe anyị na-edekọ<br/>ihe ọmụma.','Places where we<br/>write knowledge.')}</h1><p className="inner-lede">{t(locale,'Ọrụ Wikimedia na-eme ka onye ọ bụla nwee ike isonye. Nyochaa ebe anyị na-arụ ọrụ ma họrọ ebe okwu gị ga-aba uru.', 'Wikimedia projects invite everyone to take part. Explore the places we work and find where your voice belongs.')}</p>
     {summary.error && <ErrorNotice message={asError(summary.error)} retry={() => summary.refetch()}/>}
     <div className="directory-grid">{projects.map((project, i)=><a className={`directory-card directory-${i}`} href={project.url} target="_blank" rel="noreferrer" key={project.id} data-testid={`directory-project-${project.id}`}><div className="directory-top"><span className="project-glyph">{project.mark}</span><span className="eyebrow">WIKIMEDIA / {String(i+1).padStart(2,'0')}</span><ArrowUpRight size={17}/></div><h2 className="serif">{project.name}</h2><p>{locale === 'ig' ? project.detailIg : project.detailEn}</p><span className="directory-action">{t(locale,'Gaa n’ọrụ ahụ','Visit project')}<ExternalLink size={13}/></span></a>)}</div>
     <div className="directory-footnote"><ShieldCheck size={17}/><p>{t(locale,'Ọrụ ndị a bụ akụkụ nke ezinụlọ Wikimedia. Ihe ọmụma onye ọ bụla kesara na-agbaso iwu ọrụ ọ bụla.', 'These projects belong to the wider Wikimedia movement. Contributions are subject to each project’s community policies.')}</p></div>
+    {hubs.length ? <section className="about-section reveal"><SectionHead kicker={t(locale, 'OTU NA HUBS', 'HUBS & FAN CLUBS')} title={t(locale, 'Ebe ndị otu na-ezukọ ná nso', 'Where members meet, close to home')}/><HubGrid items={hubs} locale={locale}/></section> : null}
     {!pages.isLoading && pages.data?.length ? <div className="cms-link-list"><span className="eyebrow">{t(locale,'GỤKWUO','READ MORE')}</span>{pages.data.filter(p=>p.published).map(p=><Link key={p.slug} href={`/about/${p.slug}`} data-testid={`link-cms-${p.slug}`}>{locale==='ig'?p.titleIg:p.titleEn}<ArrowRight size={15}/></Link>)}</div> : null}
+  </main></PageFrame>;
+}
+const localizedField = (item: Record<string, string>, base: string, locale: Locale): string => {
+  const ig = item[`${base}_ig`] ?? '';
+  const en = item[`${base}_en`] ?? '';
+  return locale === 'ig' ? (ig || en) : (en || ig);
+};
+function LinkCards({ items, locale }: { items: Record<string, string>[]; locale: Locale }) {
+  if (!items.length) return null;
+  return <ul className="link-cards">{items.map((item, i) => {
+    const label = localizedField(item, 'label', locale) || item.label || item.name || '';
+    const note = localizedField(item, 'description', locale) || item.period || '';
+    const url = item.url || '';
+    const content = <><span className="link-card-main"><b>{label}</b>{note ? <small>{note}</small> : null}</span><ArrowUpRight size={15}/></>;
+    return <li key={i}>{url ? <a className="link-card" href={url} target="_blank" rel="noreferrer" data-testid={`content-link-${i}`}>{content}</a> : <div className="link-card">{content}</div>}</li>;
+  })}</ul>;
+}
+function TeamGroups({ items, locale }: { items: Record<string, string>[]; locale: Locale }) {
+  const groups: { key: string; label: string; members: Record<string, string>[] }[] = [];
+  for (const item of items) {
+    const key = item.group_en || item.group_ig || '';
+    let group = groups.find((g) => g.key === key);
+    if (!group) { group = { key, label: localizedField(item, 'group', locale) || key, members: [] }; groups.push(group); }
+    group.members.push(item);
+  }
+  return <div className="team-groups">{groups.map((group) => <div className="team-group" key={group.key}>
+    <h3 className="serif team-group-title">{group.label}</h3>
+    <div className="team-grid">{group.members.map((member, i) => {
+      const url = member.profile_url || '';
+      return <article className="team-card" key={i} data-testid={`team-member-${i}`}>
+        <span className="team-mark" aria-hidden="true">{member.name?.slice(0, 1).toUpperCase()}</span>
+        <h4 className="serif">{member.name}</h4>
+        <p>{localizedField(member, 'role', locale)}</p>
+        {url ? <a className="arrow-link" href={url} target="_blank" rel="noreferrer">{t(locale, 'Profaịlụ Wikimedia', 'Wikimedia profile')}<ExternalLink size={13}/></a> : null}
+      </article>;
+    })}</div>
+  </div>)}</div>;
+}
+function PartnerGrid({ items, locale }: { items: Record<string, string>[]; locale: Locale }) {
+  return <div className="partner-grid">{items.map((partner, i) => {
+    const url = partner.url || '';
+    const content = <><b>{partner.name}</b><span>{localizedField(partner, 'description', locale)}</span>{url ? <ExternalLink size={13}/> : null}</>;
+    return url ? <a className="partner-card" key={i} href={url} target="_blank" rel="noreferrer" data-testid={`partner-${i}`}>{content}</a> : <div className="partner-card" key={i} data-testid={`partner-${i}`}>{content}</div>;
+  })}</div>;
+}
+function HubGrid({ items, locale }: { items: Record<string, string>[]; locale: Locale }) {
+  return <div className="hub-grid">{items.map((hub, i) => {
+    const url = hub.url || '';
+    const content = <><span className="eyebrow">{localizedField(hub, 'location', locale)}</span><h3 className="serif">{hub.name}</h3>{url ? <span className="arrow-link">{t(locale, 'Gaa na hub', 'Visit hub')}<ExternalLink size={13}/></span> : null}</>;
+    return url ? <a className="hub-card" key={i} href={url} target="_blank" rel="noreferrer" data-testid={`hub-${i}`}>{content}</a> : <div className="hub-card" key={i}>{content}</div>;
+  })}</div>;
+}
+function SectionHead({ kicker, title }: { kicker: string; title: string }) {
+  return <div className="about-section-head"><span className="eyebrow">{kicker}</span><h2 className="serif">{title}</h2></div>;
+}
+function AboutPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Locale) => void }) {
+  const { collections } = useSiteContent();
+  const team = collections.team ?? [];
+  const partners = collections.partners ?? [];
+  const reports = collections.reports ?? [];
+  const grants = collections.grants ?? [];
+  const objectives = [
+    t(locale, 'Na-akwalite ojiji asụsụ Igbo n’ọrụ Wikimedia niile ma na-eme ka ọdịnaya Igbo bawanye n’ịntanetị.', 'Promote the use of the Igbo language across Wikimedia projects and grow Igbo content online.'),
+    t(locale, 'Na-azụ ma na-akwado ndị na-asụ Igbo ka ha nye aka n’efu na ntụkwasị obi.', 'Train and support Igbo speakers to contribute freely and confidently.'),
+    t(locale, 'Na-emezi ma na-agbasawanye ọrụ Wikimedia n’asụsụ Igbo.', 'Improve and expand Igbo-language Wikimedia projects.'),
+    t(locale, 'Na-edekọ ọdịbendị, akụkọ ihe mere eme na ihe nketa Igbo dịka ihe ọmụma efu.', 'Document Igbo culture, history and heritage as open knowledge.'),
+    t(locale, 'Na-emekọ ihe na obodo Wikimedia, ụlọ ọrụ na ndị mmekọ.', 'Collaborate with Wikimedia communities, institutions and partners.'),
+    t(locale, 'Na-azụlite obodo Igbo Wikimedians na-adịgide adịgide ma na-anabata mmadụ.', 'Grow a sustainable, welcoming community of Igbo Wikimedians.'),
+  ];
+  return <PageFrame locale={locale} setLocale={setLocale}><main className="inner-page shell about-page">
+    <div className="page-kicker"><Wordmark/><span>ABOUT / BANYERE ANYỊ</span></div>
+    <h1 className="serif inner-title">{t(locale, 'Ndị anyị bụ,<br/>na ihe anyị na-eme.', 'Who we are,<br/>and what we do.')}</h1>
+    <p className="inner-lede">{t(locale, 'Anyị bụ obodo ndị ọrụ afọ ofufo na-eme ka asụsụ, akụkọ ihe mere eme na ọdịbendị Igbo dịgide meghere, chọta ma dịrị ndụ n’ọrụ Wikimedia.', 'We are a volunteer community keeping the Igbo language, history and culture open, findable and alive across the Wikimedia projects.')}</p>
+    <section className="about-section reveal">
+      <SectionHead kicker={t(locale, 'AKỤKỌ ANYỊ', 'OUR STORY')} title={t(locale, 'Site na 2016 ruo taa', 'From 2016 to today')}/>
+      <div className="about-story">
+        <p>{t(locale, 'Igbo Wikimedians sitere na Igbo Women Edit-a-thon, mmemme malitere n’afọ 2016 iji weta ọtụtụ ụmụ nwanyị Igbo na ihe ọmụma n’asụsụ Igbo n’ọrụ Wikimedia.', 'Igbo Wikimedians grew out of the Igbo Women Edit-a-thon, a drive that began in 2016 to bring more Igbo women and Igbo-language knowledge onto Wikimedia projects.')}</p>
+        <p>{t(locale, 'N’ụbọchị 5 Mee 2018, e kwenyeere obodo a dịka Wikimedia User Group. Ndị otu na-enye aka ugbu a n’Wikipedia, Wiktionary, Wikidata, Wikimedia Commons na Wikiquote — maka ihe dị ka nde mmadụ 34 na-asụ Igbo.', 'On 5 May 2018 the community was recognized as a Wikimedia User Group. Members now contribute across Wikipedia, Wiktionary, Wikidata, Wikimedia Commons and Wikiquote — for an audience of about 34 million Igbo speakers.')}</p>
+      </div>
+    </section>
+    <section className="about-section reveal">
+      <SectionHead kicker={t(locale, 'IHE MGBARU ỌSỌ', 'OBJECTIVES')} title={t(locale, 'Ihe anyị na-achọ ime', 'What we set out to do')}/>
+      <ol className="objectives-list">{objectives.map((objective, i) => <li key={i}><span className="objective-index">{String(i + 1).padStart(2, '0')}</span><p>{objective}</p></li>)}</ol>
+    </section>
+    {team.length ? <section className="about-section reveal">
+      <SectionHead kicker={t(locale, 'NDỊ NA-EDU ỌRỤ', 'LEADERSHIP')} title={t(locale, 'Ndị na-edu ọrụ', 'The people leading the work')}/>
+      <TeamGroups items={team} locale={locale}/>
+    </section> : null}
+    {reports.length ? <section className="about-section reveal">
+      <SectionHead kicker={t(locale, 'NKE ỌHA', 'TRANSPARENCY')} title={t(locale, 'Akụkọ kwa afọ', 'Annual reports')}/>
+      <LinkCards items={reports} locale={locale}/>
+    </section> : null}
+    {grants.length ? <section className="about-section reveal">
+      <SectionHead kicker={t(locale, 'ONYINYE', 'SUPPORT')} title={t(locale, 'Onyinye na nkwado', 'Grants & support')}/>
+      <LinkCards items={grants} locale={locale}/>
+    </section> : null}
+    {partners.length ? <section className="about-section reveal">
+      <SectionHead kicker={t(locale, 'NDỊ MMEKỌ', 'PARTNERS')} title={t(locale, 'Ndị anyị na-arụkọ ọrụ', 'Partners & collaborators')}/>
+      <PartnerGrid items={partners} locale={locale}/>
+    </section> : null}
+    <div className="about-cta">
+      <Link href="/about/by-laws" className="btn-primary" data-testid="link-about-by-laws">{t(locale, 'Gụọ iwu otu', 'Read the by-laws')}<ArrowRight size={16}/></Link>
+      <Link href="/contact" className="text-cta">{t(locale, 'Kpọtụrụ anyị', 'Contact us')}<ArrowUpRight size={15}/></Link>
+    </div>
+  </main></PageFrame>;
+}
+function ContactPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Locale) => void }) {
+  const settings = useGetSiteSettings();
+  const { collections } = useSiteContent();
+  const social = collections.social_links ?? [];
+  const email = settings.data?.contactEmail || 'ndewo@wikimediaigbo.org';
+  const address = settings.data?.contactAddress || 'Cavic Nigeria, No.30 Agadez Street, off Aminu Kano Crescent, Wuse 2, Abuja, Nigeria';
+  return <PageFrame locale={locale} setLocale={setLocale}><main className="inner-page shell contact-page">
+    <div className="page-kicker"><Wordmark/><span>CONTACT / KỌNTAAKTỊ</span></div>
+    <h1 className="serif inner-title">{t(locale, 'Kpọtụrụ anyị.<br/>Anyị na-ege ntị.', 'Talk to us.<br/>We are listening.')}</h1>
+    <p className="inner-lede">{t(locale, 'Kpọtụrụ obodo a site na email, ọwa soshal anyị, ma ọ bụ ebe anyị dị na Abuja. Ma ị chọrọ inye aka, imekọ ihe, ma ọ bụ jụọ ajụjụ — anyị ga-enwe mmasị ịnụ olu gị.', 'Reach the community through email, our social channels, or our space in Abuja. Whether you want to contribute, partner or ask a question, we would love to hear from you.')}</p>
+    <div className="contact-grid">
+      <div className="contact-card"><span className="eyebrow">EMAIL</span><a href={`mailto:${email}`} data-testid="contact-email">{email}</a></div>
+      <div className="contact-card"><span className="eyebrow">{t(locale, 'ADRES', 'ADDRESS')}</span><p>{address}</p></div>
+    </div>
+    {social.length ? <section className="about-section reveal">
+      <SectionHead kicker={t(locale, 'SOSAAL', 'SOCIAL')} title={t(locale, 'Soro anyị n’ịntanetị', 'Follow us online')}/>
+      <LinkCards items={social} locale={locale}/>
+    </section> : null}
+  </main></PageFrame>;
+}
+function ReportsPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Locale) => void }) {
+  const reports = useSiteContent().collections.reports ?? [];
+  return <PageFrame locale={locale} setLocale={setLocale}><main className="inner-page shell">
+    <div className="page-kicker"><Wordmark/><span>REPORTS / AKỤKỌ</span></div>
+    <h1 className="serif inner-title">{t(locale, 'Akụkọ anyị,<br/>n’ihe ọha.', 'Our reports,<br/>in the open.')}</h1>
+    <p className="inner-lede">{t(locale, 'Kwa afọ, anyị na-edekọ mmemme, mmefu na ihe anyị rụpụtara ka ndị otu na ndị mmekọ wee hụ ọrụ dị n’azụ ọnụọgụ.', 'Each year we document our programmes, spending and outcomes so members and partners can see the work behind the numbers.')}</p>
+    <LinkCards items={reports} locale={locale}/>
+  </main></PageFrame>;
+}
+function PartnershipsPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Locale) => void }) {
+  const partners = useSiteContent().collections.partners ?? [];
+  return <PageFrame locale={locale} setLocale={setLocale}><main className="inner-page shell">
+    <div className="page-kicker"><Wordmark/><span>PARTNERS / NDỊ MMEKỌ</span></div>
+    <h1 className="serif inner-title">{t(locale, 'Ọrụ anyị<br/>na mmekọ ọnụ.', 'Partnerships<br/>that carry the work.')}</h1>
+    <p className="inner-lede">{t(locale, 'Anyị na-arụkọ ọrụ na ụlọ ọrụ ọdịbendị, agụmakwụkwọ na obodo ndị nwere otu ebumnuche anyị: ihe ọmụma efu n’asụsụ Igbo nakwa gbasara ndị Igbo.', 'We work with cultural, educational and civic organisations who share our aim: open knowledge in and about Igbo.')}</p>
+    <PartnerGrid items={partners} locale={locale}/>
+    <div className="about-cta"><Link href="/contact" className="btn-primary">{t(locale, 'Bido mmekọ', 'Start a partnership')}<ArrowRight size={16}/></Link></div>
+  </main></PageFrame>;
+}
+function GrantsPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Locale) => void }) {
+  const grants = useSiteContent().collections.grants ?? [];
+  return <PageFrame locale={locale} setLocale={setLocale}><main className="inner-page shell">
+    <div className="page-kicker"><Wordmark/><span>GRANTS / ONYINYE</span></div>
+    <h1 className="serif inner-title">{t(locale, 'Nkwado maka<br/>ọrụ gị.', 'Support for<br/>your work.')}</h1>
+    <p className="inner-lede">{t(locale, 'Ndị otu nwere ike ịrịọ obere onyinye ime obodo iji mee edit-a-thon, njem foto, ọrụ ndekọ na nzukọ obodo.', 'Members can apply for small internal grants to run edit-a-thons, photo walks, documentation projects and community meet-ups.')}</p>
+    <LinkCards items={grants} locale={locale}/>
   </main></PageFrame>;
 }
 function EventFeature({ event, locale, index }: { event: CommunityEvent; locale: Locale; index: number }) {
@@ -938,6 +1099,11 @@ function AuthRoutes({locale,setLocale}:{locale:Locale;setLocale:(v:Locale)=>void
       <Route path="/projects" component={()=> <ProjectsPage locale={locale} setLocale={setLocale}/>}/>
       <Route path="/events" component={()=> <EventsPage locale={locale} setLocale={setLocale}/>}/>
       <Route path="/community" component={()=> <CommunityPage locale={locale} setLocale={setLocale}/>}/>
+      <Route path="/about" component={()=> <AboutPage locale={locale} setLocale={setLocale}/>}/>
+      <Route path="/contact" component={()=> <ContactPage locale={locale} setLocale={setLocale}/>}/>
+      <Route path="/reports" component={()=> <ReportsPage locale={locale} setLocale={setLocale}/>}/>
+      <Route path="/partnerships" component={()=> <PartnershipsPage locale={locale} setLocale={setLocale}/>}/>
+      <Route path="/grants" component={()=> <GrantsPage locale={locale} setLocale={setLocale}/>}/>
       <Route path="/gallery" component={()=> <GalleryPage locale={locale} setLocale={setLocale}/>}/>
       <Route path="/dictionary" component={()=> <DictionaryPage locale={locale} setLocale={setLocale}/>}/>
       <Route path="/join" component={()=> <JoinPage locale={locale} setLocale={setLocale}/>}/>
