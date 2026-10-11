@@ -521,25 +521,44 @@ paths:
                 $ref: "#/components/schemas/Member"
         "404":
           description: No registration exists
+    patch:
+      operationId: updateMyMembership
+      tags: [membership]
+      summary: Update the current member's own profile preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemberSelfUpdate"
+      responses:
+        "200":
+          description: Updated membership profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Member"
+        "404":
+          description: No registration exists
   /admin/members:
     get:
       operationId: listMembers
       tags: [admin]
-      summary: List registered members for authorized administrators
+      summary: List registered members with their linked account for administrators
       responses:
         "200":
-          description: Registered members
+          description: Registered members with linked login account
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Member"
+                  $ref: "#/components/schemas/AdminMember"
   /admin/members/{memberId}:
     patch:
       operationId: updateMember
       tags: [admin]
-      summary: Update a member's tier or approval status
+      summary: Update a member's profile, tier or approval status
       parameters:
         - name: memberId
           in: path
@@ -558,7 +577,46 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Member"
+                $ref: "#/components/schemas/AdminMember"
+    delete:
+      operationId: deleteMember
+      tags: [admin]
+      summary: Delete a member and their linked login account
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Member and account removed
+        "404":
+          description: Member not found
+  /admin/members/{memberId}/account:
+    patch:
+      operationId: updateMemberAccount
+      tags: [admin]
+      summary: Update the linked login account (email, username or password)
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemberAccountUpdate"
+      responses:
+        "200":
+          description: Updated member with account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMember"
   /community/summary:
     get:
       operationId: getCommunitySummary
@@ -937,9 +995,33 @@ components:
     MemberAdminUpdate:
       type: object
       properties:
+        displayName: { type: string, minLength: 1 }
+        location: { type: string }
         tierId: { type: string }
         status: { type: string, enum: [pending, active, paused] }
         shareWikiStats: { type: boolean }
+    MemberSelfUpdate:
+      type: object
+      properties:
+        displayName: { type: string, minLength: 1 }
+        location: { type: string }
+        shareWikiStats: { type: boolean }
+    MemberAccountUpdate:
+      type: object
+      properties:
+        email: { type: string, format: email }
+        username: { type: string, minLength: 1 }
+        password: { type: string, minLength: 8 }
+    AdminMember:
+      allOf:
+        - $ref: "#/components/schemas/Member"
+        - type: object
+          required: [userId, email, username, role]
+          properties:
+            userId: { type: string }
+            email: { type: ["string", "null"] }
+            username: { type: ["string", "null"] }
+            role: { type: string, enum: [member, admin] }
     CommunitySummary:
       type: object
       required: [registeredMembers, publishedEvents, activeProjects, projects]
@@ -987,10 +1069,9 @@ components:
           items: { type: string }
     CommunityContributor:
       type: object
-      required: [memberId, displayName, totalContributions, projects, byProject]
+      required: [memberId, totalContributions, projects, byProject]
       properties:
         memberId: { type: string }
-        displayName: { type: string }
         totalContributions: { type: integer }
         projects:
           type: array

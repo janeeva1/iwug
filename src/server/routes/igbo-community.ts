@@ -10,6 +10,7 @@ import {
   CreatePageBody,
   CreatePageResponse,
   DeleteEventParams,
+  DeleteMemberParams,
   DeleteMembershipTierParams,
   DeletePageParams,
   GetCommunitySummaryResponse,
@@ -29,12 +30,17 @@ import {
   UpdateEventBody,
   UpdateEventParams,
   UpdateEventResponse,
+  UpdateMemberAccountBody,
+  UpdateMemberAccountParams,
+  UpdateMemberAccountResponse,
   UpdateMemberBody,
   UpdateMemberParams,
   UpdateMemberResponse,
   UpdateMembershipTierBody,
   UpdateMembershipTierParams,
   UpdateMembershipTierResponse,
+  UpdateMyMembershipBody,
+  UpdateMyMembershipResponse,
   UpdatePageBody,
   UpdatePageParams,
   UpdatePageResponse,
@@ -48,8 +54,10 @@ import {
   membersTable,
   membershipTiersTable,
   siteSettingsTable,
+  usersTable,
   type WikimediaAccount,
 } from "@workspace/db";
+import { hashPassword } from "../lib/passwords";
 import { ensureCommunitySeed } from "../lib/seedCommunity";
 import {
   cacheDel,
@@ -151,6 +159,19 @@ function eventForApi(event: typeof communityEventsTable.$inferSelect) {
 
 function memberForApi(member: typeof membersTable.$inferSelect) {
   return { ...member, createdAt: member.createdAt.toISOString() };
+}
+
+function adminMemberForApi(
+  member: typeof membersTable.$inferSelect,
+  user: typeof usersTable.$inferSelect,
+) {
+  return {
+    ...memberForApi(member),
+    userId: member.userId,
+    email: user.email,
+    username: user.username,
+    role: user.role,
+  };
 }
 
 function isSafeHttpUrl(value: string | null): boolean {
@@ -598,9 +619,7 @@ router.post(
       return;
     }
 
-    const accounts: WikimediaAccount[] = parsed.data.shareWikiStats
-      ? parsed.data.wikiAccounts
-      : [];
+    const accounts: WikimediaAccount[] = parsed.data.wikiAccounts;
     const id = randomUUID();
     await db.insert(membersTable).values({
       id,
@@ -640,12 +659,77 @@ router.get("/member/me", requireUser, async (req, res): Promise<void> => {
   res.json(GetMyMembershipResponse.parse(memberForApi(member)));
 });
 
-router.get("/admin/members", requireAdmin, async (_req, res): Promise<void> => {
-  const members = await db
+router.patch("/member/me", requireUser, async (req, res): Promise<void> => {
+  const parsed = UpdateMyMembershipBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const userId = req.user!.id;
+  const [existing] = await db
     .select()
     .from(membersTable)
+    .where(eq(membersTable.userId, userId));
+  if (!existing) {
+    res.status(404).json({ error: "No membership registration exists." });
+    return;
+  }
+
+  const patch: Partial<typeof membersTable.$inferInsert> = {};
+  if (parsed.data.displayName !== undefined) {
+    const displayName = parsed.data.displayName.trim();
+    if (!displayName) {
+      res.status(400).json({ error: "Enter a name for your membership profile." });
+      return;
+    }
+    patch.displayName = displayName;
+  }
+  if (parsed.data.location !== undefined) {
+    patch.location = parsed.data.location.trim();
+  }
+  if (parsed.data.shareWikiStats !== undefined) {
+    if (parsed.data.shareWikiStats && existing.wikiAccounts.length === 0) {
+      res.status(400).json({
+        error:
+          "Add at least one Wikimedia username before sharing contribution statistics.",
+      });
+      return;
+    }
+    patch.shareWikiStats = parsed.data.shareWikiStats;
+  }
+
+  if (Object.keys(patch).length > 0) {
+    await db.update(membersTable).set(patch).where(eq(membersTable.id, existing.id));
+  }
+
+  const [member] = await db
+    .select()
+    .from(membersTable)
+    .where(eq(membersTable.id, existing.id));
+  if (!member) {
+    res.status(500).json({ error: "The profile could not be updated." });
+    return;
+  }
+
+  await cacheDel(
+    cacheKeys.communitySummary,
+    cacheKeys.communityContributors,
+    cacheKeys.memberStats(existing.id),
+  );
+  res.json(UpdateMyMembershipResponse.parse(memberForApi(member)));
+});
+
+router.get("/admin/members", requireAdmin, async (_req, res): Promise<void> => {
+  const rows = await db
+    .select({ member: membersTable, user: usersTable })
+    .from(membersTable)
+    .innerJoin(usersTable, eq(membersTable.userId, usersTable.id))
     .orderBy(asc(membersTable.createdAt));
-  res.json(ListMembersResponse.parse(members.map(memberForApi)));
+  res.json(
+    ListMembersResponse.parse(
+      rows.map((row) => adminMemberForApi(row.member, row.user)),
+    ),
+  );
 });
 
 router.patch(
@@ -676,21 +760,19 @@ router.patch(
       return;
     }
 
-    const update =
-      parsed.data.shareWikiStats === false
-        ? { ...parsed.data, wikiAccounts: [] }
-        : parsed.data;
+    const update = parsed.data;
 
     await db
       .update(membersTable)
       .set(update)
       .where(eq(membersTable.id, params.data.memberId));
 
-    const [member] = await db
-      .select()
+    const [row] = await db
+      .select({ member: membersTable, user: usersTable })
       .from(membersTable)
+      .innerJoin(usersTable, eq(membersTable.userId, usersTable.id))
       .where(eq(membersTable.id, params.data.memberId));
-    if (!member) {
+    if (!row) {
       res.status(404).json({ error: "Member not found." });
       return;
     }
@@ -700,7 +782,111 @@ router.patch(
       cacheKeys.communityContributors,
       cacheKeys.memberStats(params.data.memberId),
     );
-    res.json(UpdateMemberResponse.parse(memberForApi(member)));
+    res.json(UpdateMemberResponse.parse(adminMemberForApi(row.member, row.user)));
+  },
+);
+
+router.patch(
+  "/admin/members/:memberId/account",
+  requireAdmin,
+  async (req, res): Promise<void> => {
+    const params = UpdateMemberAccountParams.safeParse(req.params);
+    const parsed = UpdateMemberAccountBody.safeParse(req.body);
+    if (!params.success) {
+      res.status(400).json({ error: params.error.message });
+      return;
+    }
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+
+    const [existing] = await db
+      .select()
+      .from(membersTable)
+      .where(eq(membersTable.id, params.data.memberId));
+    if (!existing) {
+      res.status(404).json({ error: "Member not found." });
+      return;
+    }
+
+    const patch: Partial<typeof usersTable.$inferInsert> = {};
+    if (parsed.data.email !== undefined) {
+      const email = parsed.data.email.trim().toLowerCase();
+      const [conflict] = await db
+        .select({ id: usersTable.id })
+        .from(usersTable)
+        .where(eq(usersTable.email, email));
+      if (conflict && conflict.id !== existing.userId) {
+        res.status(409).json({ error: "That email address is already in use." });
+        return;
+      }
+      patch.email = email;
+    }
+    if (parsed.data.username !== undefined) {
+      const username = parsed.data.username.trim();
+      const [conflict] = await db
+        .select({ id: usersTable.id })
+        .from(usersTable)
+        .where(eq(usersTable.username, username));
+      if (conflict && conflict.id !== existing.userId) {
+        res.status(409).json({ error: "That username is already taken." });
+        return;
+      }
+      patch.username = username;
+    }
+    if (parsed.data.password !== undefined) {
+      patch.passwordHash = await hashPassword(parsed.data.password);
+    }
+
+    if (Object.keys(patch).length > 0) {
+      await db
+        .update(usersTable)
+        .set(patch)
+        .where(eq(usersTable.id, existing.userId));
+    }
+
+    const [row] = await db
+      .select({ member: membersTable, user: usersTable })
+      .from(membersTable)
+      .innerJoin(usersTable, eq(membersTable.userId, usersTable.id))
+      .where(eq(membersTable.id, params.data.memberId));
+    if (!row) {
+      res.status(404).json({ error: "Member not found." });
+      return;
+    }
+
+    res.json(UpdateMemberAccountResponse.parse(adminMemberForApi(row.member, row.user)));
+  },
+);
+
+router.delete(
+  "/admin/members/:memberId",
+  requireAdmin,
+  async (req, res): Promise<void> => {
+    const params = DeleteMemberParams.safeParse(req.params);
+    if (!params.success) {
+      res.status(400).json({ error: params.error.message });
+      return;
+    }
+
+    const [existing] = await db
+      .select({ userId: membersTable.userId })
+      .from(membersTable)
+      .where(eq(membersTable.id, params.data.memberId));
+    if (!existing) {
+      res.status(404).json({ error: "Member not found." });
+      return;
+    }
+
+    await db.delete(usersTable).where(eq(usersTable.id, existing.userId));
+
+    await cacheDel(
+      cacheKeys.communitySummary,
+      cacheKeys.communityContributors,
+      cacheKeys.memberStats(params.data.memberId),
+    );
+    res.status(204).send();
   },
 );
 
@@ -736,7 +922,6 @@ router.get("/community/contributors", async (_req, res): Promise<void> => {
       const members = await db
         .select({
           id: membersTable.id,
-          displayName: membersTable.displayName,
           wikiAccounts: membersTable.wikiAccounts,
         })
         .from(membersTable)
@@ -774,7 +959,6 @@ router.get("/community/contributors", async (_req, res): Promise<void> => {
 
         return {
           memberId: member.id,
-          displayName: member.displayName,
           projects,
           byProject: Array.from(byProjectMap.values()),
           totalContributions: projects.reduce(

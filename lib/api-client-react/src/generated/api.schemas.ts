@@ -367,10 +367,45 @@ export const MemberAdminUpdateStatus = {
 } as const;
 
 export interface MemberAdminUpdate {
+  /** @minLength 1 */
+  displayName?: string;
+  location?: string;
   tierId?: string;
   status?: MemberAdminUpdateStatus;
   shareWikiStats?: boolean;
 }
+
+export interface MemberSelfUpdate {
+  /** @minLength 1 */
+  displayName?: string;
+  location?: string;
+  shareWikiStats?: boolean;
+}
+
+export interface MemberAccountUpdate {
+  email?: string;
+  /** @minLength 1 */
+  username?: string;
+  /** @minLength 8 */
+  password?: string;
+}
+
+export type AdminMemberRole = typeof AdminMemberRole[keyof typeof AdminMemberRole];
+
+
+export const AdminMemberRole = {
+  member: 'member',
+  admin: 'admin',
+} as const;
+
+export type AdminMember = Member & ({
+  userId: string;
+  /** @nullable */
+  email: string | null;
+  /** @nullable */
+  username: string | null;
+  role: AdminMemberRole;
+});
 
 export type CommunitySummaryProjectsItem = {
   id: string;
@@ -409,7 +444,6 @@ export interface CommunityProjectTotal {
 
 export interface CommunityContributor {
   memberId: string;
-  displayName: string;
   totalContributions: number;
   projects: WikimediaProjectStats[];
   byProject: CommunityProjectTotal[];

@@ -20,7 +20,8 @@ import {
   useUpdateEvent, useDeleteEvent, useListMembershipTiers, getListMembershipTiersQueryKey,
   useCreateMembershipTier, useUpdateMembershipTier, useDeleteMembershipTier,
   useRegisterMember, useGetMyMembership, getGetMyMembershipQueryKey, useListMembers,
-  getListMembersQueryKey, useUpdateMember, useGetCommunitySummary,
+  getListMembersQueryKey, useUpdateMember, useDeleteMember, useUpdateMemberAccount,
+  useUpdateMyMembership, useGetCommunitySummary,
   getGetCommunitySummaryQueryKey, useGetWikimediaStats, getGetWikimediaStatsQueryKey,
   useGetMyWikimediaStats, getGetMyWikimediaStatsQueryKey,
   useGetCommunityContributors, getGetCommunityContributorsQueryKey,
@@ -32,7 +33,7 @@ import {
 } from '@workspace/api-client-react';
 import type {
   CmsPage, CmsPageInput, CommunityEvent, CommunityEventInput, MembershipTier,
-  MembershipTierInput, Member, SiteSettings, SiteSettingsInput, WikimediaMemberStats,
+  MembershipTierInput, Member, AdminMember, SiteSettings, SiteSettingsInput, WikimediaMemberStats,
   CommunityContributor, WikimediaAccount, GalleryCategory, GalleryMediaItem,
 } from '@workspace/api-client-react';
 
@@ -84,15 +85,93 @@ function ThemeToggle() {
   const label = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
   return <button type="button" className="theme-toggle" onClick={toggle} aria-label={label} title={label} data-testid="button-theme-toggle">{theme === 'dark' ? <Sun size={16}/> : <Moon size={16}/>}</button>;
 }
+const revealSelector = '.reveal,.reveal-left,.reveal-right,.reveal-zoom,.reveal-blur,.reveal-flip,.reveal-clip,.reveal-stagger,.reveal-group';
 function useScrollReveal() {
   const [pathname] = useLocation();
   useEffect(() => {
-    const els = Array.from(document.querySelectorAll<HTMLElement>('.reveal'));
-    if (!('IntersectionObserver' in window)) { els.forEach((el) => el.classList.add('in')); return; }
-    const io = new IntersectionObserver((entries) => { entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add('in'); io.unobserve(entry.target); } }); }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
+    const reduce = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const mark = () => document.querySelectorAll<HTMLElement>(revealSelector).forEach((el) => el.classList.add('in'));
+    if (reduce || !('IntersectionObserver' in window)) { mark(); return; }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add('in'); io.unobserve(entry.target); } });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    const setup = (root: ParentNode) => {
+      root.querySelectorAll<HTMLElement>('.reveal-stagger,.reveal-group').forEach((group) => {
+        Array.from(group.children).forEach((child, i) => (child as HTMLElement).style.setProperty('--i', String(i)));
+      });
+      root.querySelectorAll<HTMLElement>(revealSelector).forEach((el) => {
+        if (el.dataset.revealed) return;
+        el.dataset.revealed = '1';
+        io.observe(el);
+      });
+    };
+    setup(document);
+    const mo = new MutationObserver((mutations) => {
+      mutations.forEach((record) => record.addedNodes.forEach((node) => { if (node.nodeType === 1) setup(node as ParentNode); }));
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+    return () => { io.disconnect(); mo.disconnect(); };
   }, [pathname]);
+}
+const spotlightTargets = '.project-tile,.directory-card,.contributor-card,.quote-card,.event-feature,.hub-card,.metric,.timeline-row,.final-call-inner,.contact-card,.link-card,.partner-card';
+function useSpotlight() {
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    const onMove = (event: PointerEvent) => {
+      const el = (event.target as HTMLElement)?.closest?.(spotlightTargets) as HTMLElement | null;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      el.style.setProperty('--mx', `${event.clientX - rect.left}px`);
+      el.style.setProperty('--my', `${event.clientY - rect.top}px`);
+    };
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return () => window.removeEventListener('pointermove', onMove);
+  }, []);
+}
+function ScrollProgress() {
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const doc = document.documentElement;
+      const max = doc.scrollHeight - doc.clientHeight;
+      setProgress(max > 0 ? Math.min(1, doc.scrollTop / max) : 0);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); };
+  }, []);
+  return <div className="scroll-progress" aria-hidden="true"><span style={{ transform: `scaleX(${progress})` }}/></div>;
+}
+function AnimatedNumber({ value, testId, format }: { value: number | null | undefined; testId?: string; format?: (n: number) => string }) {
+  const ref = useRef<HTMLElement | null>(null);
+  const [shown, setShown] = useState(0);
+  const started = useRef(false);
+  const numeric = typeof value === 'number' && Number.isFinite(value) ? value : null;
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || numeric == null) return;
+    const reduce = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const run = () => {
+      if (reduce) { setShown(numeric); return; }
+      const duration = 1200;
+      const start = performance.now();
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - start) / duration);
+        setShown(Math.round(numeric * (1 - Math.pow(1 - t, 3))));
+        if (t < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    };
+    if (!('IntersectionObserver' in window)) { run(); return; }
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting) && !started.current) { started.current = true; run(); io.disconnect(); }
+    }, { threshold: 0.4 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [numeric]);
+  const text = numeric == null ? '—' : (format ? format(shown) : shown.toLocaleString());
+  return <strong ref={ref} className="metric-number" data-testid={testId}>{text}</strong>;
 }
 const adminIg:Record<string,string>={
   'Overview':'Nchịkọta','Pages':'Peeji','Events':'Mmemme','Membership tiers':'Ọkwa otu','Members':'Ndị otu','Wiki statistics':'Stats Wiki','Settings':'Ntọala',
@@ -150,8 +229,10 @@ function SiteFooter({ locale }: { locale: Locale }) {
   </footer>;
 }
 function PageFrame({ locale, setLocale, children }: { locale: Locale; setLocale: (v: Locale) => void; children: ReactNode }) {
+  const [pathname] = useLocation();
   useScrollReveal();
-  return <div className="grain min-h-[100dvh]"><SiteHeader locale={locale} setLocale={setLocale}/>{children}<SiteFooter locale={locale}/></div>;
+  useSpotlight();
+  return <div className="grain min-h-[100dvh]"><ScrollProgress/><SiteHeader locale={locale} setLocale={setLocale}/><div className="page-transition" key={pathname}>{children}</div><SiteFooter locale={locale}/></div>;
 }
 function Wordmark() { const locale=useLocale(); return <span className="eyebrow">{t(locale,'OTU WIKIMEDIA NDỊ IGBO','IGBO WIKIMEDIANS USER GROUP')} <i className="tiny-star">·</i></span>; }
 function ErrorNotice({ message, retry }: { message: string; retry?: () => void }) {
@@ -196,6 +277,7 @@ function HomePage({ locale, setLocale }: { locale: Locale; setLocale: (v: Locale
     <main>
       <section className="hero-section">
         <HeroSlideshow/>
+        <div className="hero-spots" aria-hidden="true"><span/><span/><span/><span/><span/><span/><span/><span/></div>
         <div className="hero-orbit" aria-hidden="true"><span className="orbit-ring ring-one"/><span className="orbit-ring ring-two"/><span className="orbit-dot dot-one"/><span className="orbit-dot dot-two"/><div className="hero-monogram">Ig</div><span className="orbit-note note-one">{t(locale,'okwu / okwu','okwu / word')}</span><span className="orbit-note note-two">{t(locale,'anyị / we','we / together')}</span></div>
         <div className="shell hero-copy">
           <Wordmark/>
@@ -207,32 +289,32 @@ function HomePage({ locale, setLocale }: { locale: Locale; setLocale: (v: Locale
         </div>
         <div className="hero-visual-caption"><span>01 — 06</span><span>{t(locale,'Okwu na-aga n’ihu','Words move forward')}</span></div>
       </section>
-      <section className="metrics-strip"><div className="shell metrics-grid">
+      <section className="metrics-strip reveal"><div className="shell metrics-grid">
         {summary.isLoading ? <Skeleton rows={1}/> : summary.error ? <ErrorNotice message={asError(summary.error)}/> : <>
-          <div className="metric"><strong data-testid="metric-members">{summary.data?.registeredMembers ?? '—'}</strong><span>{t(locale,'ndị debanyere aha','registered members')}</span><small>{t(locale,'Nchịkọta obodo','Community summary')}</small></div>
-          <div className="metric"><strong data-testid="metric-events">{summary.data?.publishedEvents ?? '—'}</strong><span>{t(locale,'mmemme e bipụtara','published gatherings')}</span><small>{t(locale,'Nchịkọta obodo','Community summary')}</small></div>
-          <div className="metric"><strong data-testid="metric-projects">{summary.data?.activeProjects ?? '—'}</strong><span>{t(locale,'ọrụ Wikimedia','Wikimedia projects')}</span><small>{t(locale,'Nchịkọta obodo','Community summary')}</small></div>
+          <div className="metric"><AnimatedNumber value={summary.data?.registeredMembers} testId="metric-members"/><span>{t(locale,'ndị debanyere aha','registered members')}</span><small>{t(locale,'Nchịkọta obodo','Community summary')}</small></div>
+          <div className="metric"><AnimatedNumber value={summary.data?.publishedEvents} testId="metric-events"/><span>{t(locale,'mmemme e bipụtara','published gatherings')}</span><small>{t(locale,'Nchịkọta obodo','Community summary')}</small></div>
+          <div className="metric"><AnimatedNumber value={summary.data?.activeProjects} testId="metric-projects"/><span>{t(locale,'ọrụ Wikimedia','Wikimedia projects')}</span><small>{t(locale,'Nchịkọta obodo','Community summary')}</small></div>
         </>}
         <p className="metric-note">{t(locale,'Ọnụọgụ ndị a sitere na nchịkọta sistemụ obodo; ha abụghị nyocha onwe ha nke Wikimedia.', 'Counts come from the community service summary; they are not an independent Wikimedia audit.')}</p>
       </div></section>
       <CultureSlider locale={locale}/>
-      <section className="story-section shell">
+      <section className="story-section shell reveal-left">
         <div className="section-index"><span className="eyebrow">{t(locale,'01 / IHE MERE O JI DỊ MKPA','01 / WHY THIS MATTERS')}</span><span className="section-index-mark">01</span></div>
         <div className="story-layout"><div className="story-heading"><h2 className="serif">{t(locale,'Ọdịnihu asụsụ<br/>dị n’aka anyị.','The future of a language<br/>is made together.')}</h2><p>{t(locale,'Mgbe anyị na-ede, na-atụgharị ma na-ese ihe, anyị na-eme ka ihe ọmụma gbasara ndụ ndị Igbo dị mfe ịchọta, kesaa, ma too.', 'Every article, recording and photograph makes knowledge of Igbo life easier to find, share and grow.')}</p><Link href="/projects" className="arrow-link" data-testid="link-story-projects">{t(locale,'Gaa hụ ihe anyị na-arụ','See what we’re making')}<ArrowUpRight size={16}/></Link></div>
           <div className="quote-card"><div className="quote-ornament">“</div><blockquote className="serif">{t(locale,'Asụsụ bụ ụlọ mmadụ na-ebi n’ime ya.','Language is a home we build together.')}</blockquote><span className="quote-caption">{t(locale,'Echiche gbasara nchekwa asụsụ','A thought on language preservation')}</span><div className="quote-bottom"><span>{t(locale,'NDỊ IGBO · OBI','IGBO PEOPLE · HOME')}</span><span>02—26</span></div></div>
         </div>
       </section>
-      <section className="projects-preview">
+      <section className="projects-preview reveal">
         <div className="shell"><div className="section-heading-row"><div><span className="eyebrow">{t(locale,'02 / IHE ỌMỤMA MEGHEERE ONYE Ọ BỤLA','02 / OPEN KNOWLEDGE')}</span><h2 className="serif">{t(locale,'Ebe okwu Igbo na-aga.','Where Igbo words can go.')}</h2></div><Link href="/projects" className="arrow-link" data-testid="link-all-projects">{t(locale,'Ọrụ Wikimedia, otu olu','Wikimedia projects, one voice')}<ArrowUpRight size={16}/></Link></div>
-          <div className="project-preview-grid">{projects.slice(0, 4).map((p, i)=><a href={p.url} target="_blank" rel="noreferrer" className={`project-tile tile-${i}`} key={p.id} data-testid={`project-tile-${p.id}`}><span className="project-glyph">{p.mark}</span><span className="eyebrow">{p.name}</span><h3 className="serif">{locale === 'ig' ? p.detailIg : p.detailEn}</h3><ArrowUpRight className="project-arrow" size={18}/></a>)}</div>
+          <div className="project-preview-grid reveal-group">{projects.slice(0, 4).map((p, i)=><a href={p.url} target="_blank" rel="noreferrer" className={`project-tile tile-${i}`} key={p.id} data-testid={`project-tile-${p.id}`}><span className="project-glyph">{p.mark}</span><span className="eyebrow">{p.name}</span><h3 className="serif">{locale === 'ig' ? p.detailIg : p.detailEn}</h3><ArrowUpRight className="project-arrow" size={18}/></a>)}</div>
         </div>
       </section>
       <CommonsStory locale={locale}/>
-      <section className="timeline-section"><div className="shell timeline-layout"><div><span className="eyebrow">{t(locale,'03 / AKỤKỌ ANYỊ','03 / OUR STORY')}</span><h2 className="serif">{t(locale,'E wuru ya<br/>site n’ala.','Rooted locally.<br/>Shared everywhere.')}</h2></div><div className="timeline"><div className="timeline-row"><span className="timeline-year">2016</span><span className="timeline-dot"/><div><h3>{t(locale,'Ọrụ haziri ahazi bidoro','Organized work began')}</h3><p>{t(locale,'Ndị ọrụ afọ ofufo jikọtara ọnụ iji wuo ọdịnaya Igbo na Wikimedia.', 'Volunteers came together to build Igbo-language content across Wikimedia.')}</p></div></div><div className="timeline-row"><span className="timeline-year">2018</span><span className="timeline-dot"/><div><h3>{t(locale,'Nkwenye dịka Wikimedia User Group','Recognized as a Wikimedia User Group')}</h3><p>{t(locale,'Akụkọ obodo kwuru na Wikimedia nyere otu a nkwenye n’afọ a.', 'The community dossier records Wikimedia recognition in this year.')}</p></div></div><span className="timeline-note">{t(locale,'Afọ ndị a bụ akụkọ e kwuru, ọ bụghị nyocha ndekọ ndụ.', 'These dates are reported history, not a live verification.')}</span></div></div></section>
-      <section className="gathering-section shell"><div className="gathering-intro"><span className="eyebrow">{t(locale,'04 / KA ANYỊ RỤỌ ỌRỤ ỌNỤ','04 / MAKE SOMETHING TOGETHER')}</span><h2 className="serif">{t(locale,'Otu obodo.<br/>Ọtụtụ ụzọ isonye.','A shared table.<br/>Many ways in.')}</h2><p>{t(locale,'Bịa mụta ihe, sonyere n’ọrụ, ma ọ bụ kesaa ihe ị maara. Ọ dịghị ụzọ pụrụ iche a ga-esi malite.', 'Come to learn, contribute, or share what you know. There is no single right way to begin.')}</p><Link href="/events" className="arrow-link" data-testid="link-gatherings">{t(locale,'Chọta mmemme','Find a gathering')}<ArrowUpRight size={16}/></Link></div>
+      <section className="timeline-section reveal-blur"><div className="shell timeline-layout"><div><span className="eyebrow">{t(locale,'03 / AKỤKỌ ANYỊ','03 / OUR STORY')}</span><h2 className="serif">{t(locale,'E wuru ya<br/>site n’ala.','Rooted locally.<br/>Shared everywhere.')}</h2></div><div className="timeline"><div className="timeline-row"><span className="timeline-year">2016</span><span className="timeline-dot"/><div><h3>{t(locale,'Ọrụ haziri ahazi bidoro','Organized work began')}</h3><p>{t(locale,'Ndị ọrụ afọ ofufo jikọtara ọnụ iji wuo ọdịnaya Igbo na Wikimedia.', 'Volunteers came together to build Igbo-language content across Wikimedia.')}</p></div></div><div className="timeline-row"><span className="timeline-year">2018</span><span className="timeline-dot"/><div><h3>{t(locale,'Nkwenye dịka Wikimedia User Group','Recognized as a Wikimedia User Group')}</h3><p>{t(locale,'Akụkọ obodo kwuru na Wikimedia nyere otu a nkwenye n’afọ a.', 'The community dossier records Wikimedia recognition in this year.')}</p></div></div><span className="timeline-note">{t(locale,'Afọ ndị a bụ akụkọ e kwuru, ọ bụghị nyocha ndekọ ndụ.', 'These dates are reported history, not a live verification.')}</span></div></div></section>
+      <section className="gathering-section shell reveal"><div className="gathering-intro"><span className="eyebrow">{t(locale,'04 / KA ANYỊ RỤỌ ỌRỤ ỌNỤ','04 / MAKE SOMETHING TOGETHER')}</span><h2 className="serif">{t(locale,'Otu obodo.<br/>Ọtụtụ ụzọ isonye.','A shared table.<br/>Many ways in.')}</h2><p>{t(locale,'Bịa mụta ihe, sonyere n’ọrụ, ma ọ bụ kesaa ihe ị maara. Ọ dịghị ụzọ pụrụ iche a ga-esi malite.', 'Come to learn, contribute, or share what you know. There is no single right way to begin.')}</p><Link href="/events" className="arrow-link" data-testid="link-gatherings">{t(locale,'Chọta mmemme','Find a gathering')}<ArrowUpRight size={16}/></Link></div>
         <div className="event-peek-list">{events.isLoading ? <Skeleton rows={2}/> : events.error ? <ErrorNotice message={asError(events.error)} retry={() => events.refetch()}/> : upcoming.length ? upcoming.map(e=><EventRow key={e.id} event={e} locale={locale}/>) : <div className="empty-card"><CalendarDays/><h3>{t(locale,'A hazibeghị mmemme ọzọ','No upcoming gatherings yet')}</h3><p>{t(locale,'Lelee ọzọ ka obodo tinyekwuo ụbọchị.','Check back as the community adds dates.')}</p></div>}</div>
       </section>
-      <section className="final-call"><div className="shell final-call-inner"><div><span className="eyebrow">{t(locale,'SONYE N’ỌRỤ A','JOIN THE WORK')}</span><h2 className="serif">{t(locale,'Ihe ọmụma na-aba ụba<br/>mgbe anyị kesara ya.','Knowledge grows<br/>when it is shared.')}</h2></div><Link href="/join" className="btn-light" data-testid="button-final-join">{t(locale,'Bido ebe a','Start here')}<ArrowRight size={17}/></Link></div></section>
+      <section className="final-call reveal"><div className="shell final-call-inner"><div><span className="eyebrow">{t(locale,'SONYE N’ỌRỤ A','JOIN THE WORK')}</span><h2 className="serif">{t(locale,'Ihe ọmụma na-aba ụba<br/>mgbe anyị kesara ya.','Knowledge grows<br/>when it is shared.')}</h2></div><Link href="/join" className="btn-light" data-testid="button-final-join">{t(locale,'Bido ebe a','Start here')}<ArrowRight size={17}/></Link></div></section>
     </main>
   </PageFrame>;
 }
@@ -256,9 +338,9 @@ const defaultCommonsPhotos: CommonsPhoto[] = [
 ];
 let commonsPhotos = defaultCommonsPhotos;
 function CommonsStory({locale}:{locale:Locale}) {
-  return <section className="commons-story shell" aria-labelledby="commons-story-title">
+  return <section className="commons-story shell reveal-right" aria-labelledby="commons-story-title">
     <div className="commons-story-heading"><span className="eyebrow">{t(locale,'ỌDỊNALA NA NDỤ NDỊ MMADỤ','CULTURE IN THE EVERYDAY')}</span><h2 className="serif" id="commons-story-title">{t(locale,'Ọdịbendị anyị kwesịrị<br/>ịhụ ya, ịnụ ya, ịmara ya.','Culture deserves to be<br/>seen, heard and known.')}</h2><p>{t(locale,'Foto ndị a na-echetara anyị na ihe ọmụma bụkwa ndụ mmadụ, emume na ebe ndị mmadụ na-ezukọ.','These images remind us that knowledge is also lived experience: ceremony, community, and the places where people meet.')}</p></div>
-    <div className="commons-photo-grid">{commonsPhotos.map((photo,i)=><figure className={`commons-photo commons-photo-${i+1}`} key={photo.file} data-testid={`commons-photo-${i+1}`}><a className="commons-image-link" href={photo.file} target="_blank" rel="noreferrer" aria-label={`${t(locale,'Lelee faịlụ na Wikimedia Commons','View file on Wikimedia Commons')}: ${locale==='ig'?photo.titleIg:photo.titleEn}`}><img src={photo.src} alt={locale==='ig'?photo.altIg:photo.altEn} loading="eager" fetchPriority="low"/></a><figcaption><span className="commons-photo-title">{locale==='ig'?photo.titleIg:photo.titleEn}</span><span className="commons-credit">{t(locale,'Foto','Photo')} <b>{photo.author}</b> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noreferrer">CC BY-SA 4.0</a></span><a className="commons-file-link" href={photo.file} target="_blank" rel="noreferrer" data-testid={`link-commons-file-${i+1}`}>{t(locale,'Faịlụ na Wikimedia Commons','File on Wikimedia Commons')}<ExternalLink size={12}/></a></figcaption></figure>)}</div>
+    <div className="commons-photo-grid reveal-group">{commonsPhotos.map((photo,i)=><figure className={`commons-photo commons-photo-${i+1}`} key={photo.file} data-testid={`commons-photo-${i+1}`}><a className="commons-image-link" href={photo.file} target="_blank" rel="noreferrer" aria-label={`${t(locale,'Lelee faịlụ na Wikimedia Commons','View file on Wikimedia Commons')}: ${locale==='ig'?photo.titleIg:photo.titleEn}`}><img src={photo.src} alt={locale==='ig'?photo.altIg:photo.altEn} loading="eager" fetchPriority="low"/></a><figcaption><span className="commons-photo-title">{locale==='ig'?photo.titleIg:photo.titleEn}</span><span className="commons-credit">{t(locale,'Foto','Photo')} <b>{photo.author}</b> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noreferrer">CC BY-SA 4.0</a></span><a className="commons-file-link" href={photo.file} target="_blank" rel="noreferrer" data-testid={`link-commons-file-${i+1}`}>{t(locale,'Faịlụ na Wikimedia Commons','File on Wikimedia Commons')}<ExternalLink size={12}/></a></figcaption></figure>)}</div>
   </section>;
 }
 
@@ -338,7 +420,7 @@ function ProjectsPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Lo
   return <PageFrame locale={locale} setLocale={setLocale}><main className="inner-page shell">
     <div className="page-kicker"><Wordmark/><span>01—{String(projects.length).padStart(2,'0')}</span></div><h1 className="serif inner-title">{t(locale,'Ebe anyị na-edekọ<br/>ihe ọmụma.','Places where we<br/>write knowledge.')}</h1><p className="inner-lede">{t(locale,'Ọrụ Wikimedia na-eme ka onye ọ bụla nwee ike isonye. Nyochaa ebe anyị na-arụ ọrụ ma họrọ ebe okwu gị ga-aba uru.', 'Wikimedia projects invite everyone to take part. Explore the places we work and find where your voice belongs.')}</p>
     {summary.error && <ErrorNotice message={asError(summary.error)} retry={() => summary.refetch()}/>}
-    <div className="directory-grid">{projects.map((project, i)=><a className={`directory-card directory-${i}`} href={project.url} target="_blank" rel="noreferrer" key={project.id} data-testid={`directory-project-${project.id}`}><div className="directory-top"><span className="project-glyph">{project.mark}</span><span className="eyebrow">WIKIMEDIA / {String(i+1).padStart(2,'0')}</span><ArrowUpRight size={17}/></div><h2 className="serif">{project.name}</h2><p>{locale === 'ig' ? project.detailIg : project.detailEn}</p><span className="directory-action">{t(locale,'Gaa n’ọrụ ahụ','Visit project')}<ExternalLink size={13}/></span></a>)}</div>
+    <div className="directory-grid reveal-group">{projects.map((project, i)=><a className={`directory-card directory-${i}`} href={project.url} target="_blank" rel="noreferrer" key={project.id} data-testid={`directory-project-${project.id}`}><div className="directory-top"><span className="project-glyph">{project.mark}</span><span className="eyebrow">WIKIMEDIA / {String(i+1).padStart(2,'0')}</span><ArrowUpRight size={17}/></div><h2 className="serif">{project.name}</h2><p>{locale === 'ig' ? project.detailIg : project.detailEn}</p><span className="directory-action">{t(locale,'Gaa n’ọrụ ahụ','Visit project')}<ExternalLink size={13}/></span></a>)}</div>
     <div className="directory-footnote"><ShieldCheck size={17}/><p>{t(locale,'Ọrụ ndị a bụ akụkụ nke ezinụlọ Wikimedia. Ihe ọmụma onye ọ bụla kesara na-agbaso iwu ọrụ ọ bụla.', 'These projects belong to the wider Wikimedia movement. Contributions are subject to each project’s community policies.')}</p></div>
     {hubs.length ? <section className="about-section reveal"><SectionHead kicker={t(locale, 'OTU NA HUBS', 'HUBS & FAN CLUBS')} title={t(locale, 'Ebe ndị otu na-ezukọ ná nso', 'Where members meet, close to home')}/><HubGrid items={hubs} locale={locale}/></section> : null}
     {!pages.isLoading && pages.data?.length ? <div className="cms-link-list"><span className="eyebrow">{t(locale,'GỤKWUO','READ MORE')}</span>{pages.data.filter(p=>p.published).map(p=><Link key={p.slug} href={`/about/${p.slug}`} data-testid={`link-cms-${p.slug}`}>{locale==='ig'?p.titleIg:p.titleEn}<ArrowRight size={15}/></Link>)}</div> : null}
@@ -351,7 +433,7 @@ const localizedField = (item: Record<string, string>, base: string, locale: Loca
 };
 function LinkCards({ items, locale }: { items: Record<string, string>[]; locale: Locale }) {
   if (!items.length) return null;
-  return <ul className="link-cards">{items.map((item, i) => {
+  return <ul className="link-cards reveal-group">{items.map((item, i) => {
     const label = localizedField(item, 'label', locale) || item.label || item.name || '';
     const note = localizedField(item, 'description', locale) || item.period || '';
     const url = item.url || '';
@@ -369,7 +451,7 @@ function TeamGroups({ items, locale }: { items: Record<string, string>[]; locale
   }
   return <div className="team-groups">{groups.map((group) => <div className="team-group" key={group.key}>
     <h3 className="serif team-group-title">{group.label}</h3>
-    <div className="team-grid">{group.members.map((member, i) => {
+    <div className="team-grid reveal-group">{group.members.map((member, i) => {
       const url = member.profile_url || '';
       return <article className="team-card" key={i} data-testid={`team-member-${i}`}>
         <span className="team-mark" aria-hidden="true">{member.name?.slice(0, 1).toUpperCase()}</span>
@@ -381,14 +463,14 @@ function TeamGroups({ items, locale }: { items: Record<string, string>[]; locale
   </div>)}</div>;
 }
 function PartnerGrid({ items, locale }: { items: Record<string, string>[]; locale: Locale }) {
-  return <div className="partner-grid">{items.map((partner, i) => {
+  return <div className="partner-grid reveal-group">{items.map((partner, i) => {
     const url = partner.url || '';
     const content = <><b>{partner.name}</b><span>{localizedField(partner, 'description', locale)}</span>{url ? <ExternalLink size={13}/> : null}</>;
     return url ? <a className="partner-card" key={i} href={url} target="_blank" rel="noreferrer" data-testid={`partner-${i}`}>{content}</a> : <div className="partner-card" key={i} data-testid={`partner-${i}`}>{content}</div>;
   })}</div>;
 }
 function HubGrid({ items, locale }: { items: Record<string, string>[]; locale: Locale }) {
-  return <div className="hub-grid">{items.map((hub, i) => {
+  return <div className="hub-grid reveal-group">{items.map((hub, i) => {
     const url = hub.url || '';
     const content = <><span className="eyebrow">{localizedField(hub, 'location', locale)}</span><h3 className="serif">{hub.name}</h3>{url ? <span className="arrow-link">{t(locale, 'Gaa na hub', 'Visit hub')}<ExternalLink size={13}/></span> : null}</>;
     return url ? <a className="hub-card" key={i} href={url} target="_blank" rel="noreferrer" data-testid={`hub-${i}`}>{content}</a> : <div className="hub-card" key={i}>{content}</div>;
@@ -424,7 +506,7 @@ function AboutPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Local
     </section>
     <section className="about-section reveal">
       <SectionHead kicker={t(locale, 'IHE MGBARU ỌSỌ', 'OBJECTIVES')} title={t(locale, 'Ihe anyị na-achọ ime', 'What we set out to do')}/>
-      <ol className="objectives-list">{objectives.map((objective, i) => <li key={i}><span className="objective-index">{String(i + 1).padStart(2, '0')}</span><p>{objective}</p></li>)}</ol>
+      <ol className="objectives-list reveal-group">{objectives.map((objective, i) => <li key={i}><span className="objective-index">{String(i + 1).padStart(2, '0')}</span><p>{objective}</p></li>)}</ol>
     </section>
     {team.length ? <section className="about-section reveal">
       <SectionHead kicker={t(locale, 'NDỊ NA-EDU ỌRỤ', 'LEADERSHIP')} title={t(locale, 'Ndị na-edu ọrụ', 'The people leading the work')}/>
@@ -548,19 +630,21 @@ function EventsPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Loca
     {events.isLoading ? <Skeleton rows={4}/> : events.error ? <ErrorNotice message={asError(events.error)} retry={() => events.refetch()}/> : hasAny ? <>
       {upcoming.length ? <section className="events-group">
         <div className="events-group-head"><span className="eyebrow">{t(locale, 'NA-ABỊA', 'UPCOMING')}</span><h2 className="serif">{t(locale, 'Ihe na-abịa n’ihu', 'What’s coming up')}</h2></div>
-        <div className="events-feature-list">{upcoming.map((e, i) => <EventFeature key={e.id} event={e} locale={locale} index={i}/>)}</div>
+        <div className="events-feature-list reveal-group">{upcoming.map((e, i) => <EventFeature key={e.id} event={e} locale={locale} index={i}/>)}</div>
       </section> : null}
       {past.length ? <section className="events-group past">
         <div className="events-group-head"><span className="eyebrow">{t(locale, 'EMECHARA', 'PAST EVENTS')}</span><h2 className="serif">{t(locale, 'Ncheta nke anyị', 'Where we have been')}</h2></div>
-        <div className="events-feature-list">{past.map((e, i) => <EventFeature key={e.id} event={e} locale={locale} index={i}/>)}</div>
+        <div className="events-feature-list reveal-group">{past.map((e, i) => <EventFeature key={e.id} event={e} locale={locale} index={i}/>)}</div>
       </section> : null}
     </> : <div className="empty-feature"><CalendarDays size={32}/><span className="eyebrow">THE NEXT PAGE IS YOURS</span><h2 className="serif">{t(locale, 'Obodo na-ahazi nzukọ ọzọ.', 'The community is planning its next gathering.')}</h2><p>{t(locale, 'Enweghị mmemme e bipụtara ugbu a. Banye n’òtù ka ị nụ banyere ohere ndị na-abịa.', 'There are no published events at the moment. Join the community to hear when new opportunities arrive.')}</p><Link className="btn-primary" href="/join" data-testid="button-events-join">{t(locale, 'Banye n’ọrụ', 'Join the work')}<ArrowRight size={16}/></Link></div>}
   </main></PageFrame>;
 }
 
 function ContributorCard({ contributor, locale }: { contributor: CommunityContributor; locale: Locale }) {
+  const usernames = contributor.byProject.flatMap(b => b.accounts);
+  const title = usernames[0] ?? 'Wikimedia contributor';
   return <article className="contributor-card" data-testid={`contributor-${contributor.memberId}`}>
-    <header className="contributor-head"><span className="contributor-mark">{contributor.displayName.slice(0, 1).toUpperCase()}</span><div><h3>{contributor.displayName}</h3><span className="contributor-total">{contributor.totalContributions.toLocaleString(locale === 'ig' ? 'ig-NG' : 'en-GB')} {t(locale, 'onyinye', 'contributions')}</span></div></header>
+    <header className="contributor-head"><span className="contributor-mark">{title.slice(0, 1).toUpperCase()}</span><div><h3>{title}{usernames.length > 1 ? ` +${usernames.length - 1}` : ''}</h3><span className="contributor-total">{contributor.totalContributions.toLocaleString(locale === 'ig' ? 'ig-NG' : 'en-GB')} {t(locale, 'onyinye', 'contributions')}</span></div></header>
     <ul className="contributor-projects">{contributor.byProject.map(b => <li key={b.project}>
       <div className="contributor-project-top"><span className="project-glyph small">{projectById(b.project)?.mark ?? 'W'}</span><b>{projectLabel(b.project, locale)}</b><span className="contributor-count">{b.available ? b.contributions.toLocaleString(locale === 'ig' ? 'ig-NG' : 'en-GB') : '—'}</span></div>
       <div className="contributor-accounts">{b.accounts.map(a => { const url = projectUserUrl(b.project, a); return url ? <a key={a} href={url} target="_blank" rel="noreferrer">{a}<ExternalLink size={11}/></a> : <span key={a}>{a}</span>; })}</div>
@@ -580,13 +664,13 @@ function CommunityPage({ locale, setLocale }: { locale: Locale; setLocale: (v: L
     <h1 className="serif inner-title">{t(locale,'Ọrụ ndị otu anyị,<br/>n’ihu ọha.','Our members’ work,<br/>out in the open.')}</h1>
     <p className="inner-lede">{t(locale,'Ndị otu anyị na-ede, na-atụgharị ma na-ese ihe n’ọrụ Wikimedia dị iche iche. Naanị ndị otu nyere nkwenye ka e gosiri ebe a — aha njirimara na ngụkọta onyinye ha n’otu ọrụ ọ bụla.','Our members write, translate and share across the Wikimedia projects. Only members who opted in appear here — their usernames and per-project contribution totals.')}</p>
     {query.isLoading?<Skeleton rows={4}/>:query.error?<ErrorNotice message={asError(query.error)} retry={()=>query.refetch()}/>:contributors.length?<>
-      <div className="metrics-grid contributor-metrics" data-testid="contributor-metrics">
-        <div className="metric"><strong>{contributors.length}</strong><span>{t(locale,'ndị nyere aka','contributors')}</span><small>{t(locale,'Ndị otu nyere nkwenye','Consented members')}</small></div>
-        <div className="metric"><strong>{grandTotal.toLocaleString(locale === 'ig' ? 'ig-NG' : 'en-GB')}</strong><span>{t(locale,'onyinye e dekọrọ','recorded contributions')}</span><small>{t(locale,'Nchịkọta Wikimedia','Wikimedia totals')}</small></div>
-        <div className="metric"><strong>{activeProjects.length}</strong><span>{t(locale,'ọrụ e nwere','active projects')}</span><small>{t(locale,'Ọrụ Wikimedia','Wikimedia projects')}</small></div>
+      <div className="metrics-grid contributor-metrics reveal" data-testid="contributor-metrics">
+        <div className="metric"><AnimatedNumber value={contributors.length} format={(n)=>n.toLocaleString(locale === 'ig' ? 'ig-NG' : 'en-GB')}/><span>{t(locale,'ndị nyere aka','contributors')}</span><small>{t(locale,'Ndị otu nyere nkwenye','Consented members')}</small></div>
+        <div className="metric"><AnimatedNumber value={grandTotal} format={(n)=>n.toLocaleString(locale === 'ig' ? 'ig-NG' : 'en-GB')}/><span>{t(locale,'onyinye e dekọrọ','recorded contributions')}</span><small>{t(locale,'Nchịkọta Wikimedia','Wikimedia totals')}</small></div>
+        <div className="metric"><AnimatedNumber value={activeProjects.length} format={(n)=>n.toLocaleString(locale === 'ig' ? 'ig-NG' : 'en-GB')}/><span>{t(locale,'ọrụ e nwere','active projects')}</span><small>{t(locale,'Ọrụ Wikimedia','Wikimedia projects')}</small></div>
       </div>
       <div className="contributor-filters" role="tablist" aria-label={t(locale,'Zaa site n’ọrụ','Filter by project')}><button type="button" className={filter==='all'?'active':''} onClick={()=>setFilter('all')} data-testid="filter-all">{t(locale,'Ha niile','All projects')}</button>{activeProjects.map(p=><button type="button" key={p.id} className={filter===p.id?'active':''} onClick={()=>setFilter(p.id)} data-testid={`filter-${p.id}`}>{locale==='ig'?p.ig:p.en}</button>)}</div>
-      <div className="contributor-grid">{visible.map(c=><ContributorCard key={c.memberId} contributor={c} locale={locale}/>)}</div>
+      <div className="contributor-grid reveal-group">{visible.map(c=><ContributorCard key={c.memberId} contributor={c} locale={locale}/>)}</div>
       <p className="contributor-note"><ShieldCheck size={16}/>{t(locale,'E gosiri naanị ndị otu nyere nkwenye doro anya. Ọnụ ọgụgụ sitere na Wikimedia API ma nwee ike ịdị ntakịrị ihe karịa ndekọ ndụ.','Only members with explicit consent are shown. Totals come from the Wikimedia API and may be slightly behind live counts.')}</p>
     </>:<div className="empty-feature"><UsersRound size={32}/><span className="eyebrow">NO CONTRIBUTORS YET</span><h2 className="serif">{t(locale,'Ọ nwebeghị ndị otu nyere nkwenye.','No consented contributors yet.')}</h2><p>{t(locale,'Mgbe ndị otu nyere nkwenye, a ga-egosi aha njirimara ha na onyinye ha n’ebe a.','When members opt in, their Wikimedia usernames and contribution totals will appear here.')}</p><Link className="btn-primary" href="/join">{t(locale,'Banye n’ọtù','Join the community')}<ArrowRight size={16}/></Link></div>}
   </main></PageFrame>;
@@ -712,40 +796,84 @@ function DictionaryPage({ locale, setLocale }: { locale: Locale; setLocale: (v: 
 }
 
 function JoinPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Locale) => void }) {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, setUser } = useAuth();
   const tiers = useListMembershipTiers();
   const register = useRegisterMember();
+  const registerAccount = useRegisterAccount();
   const cache = useQueryClient();
   const [tier, setTier] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [location, setLocation] = useState('');
   const [accounts, setAccounts] = useState<Record<string,string>>({});
-  const [consent, setConsent] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [wikiUsername, setWikiUsername] = useState('');
+  const [wikiAccount, setWikiAccount] = useState<WikimediaAccountInfo | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [showList, setShowList] = useState(false);
+  const [authError, setAuthError] = useState('');
   const [done, setDone] = useState(false);
   const paystack=usePaymentConfig();
   const [payError,setPayError]=useState('');
+  const suggestions = useWikimediaSuggestions(wikiUsername);
   const activeTiers=(tiers.data??[]).filter(x=>x.active);
   const hasWikiUsername=Object.values(accounts).some(username=>username.trim().length>0);
+  const pickWikiUsername = async (name: string) => {
+    setWikiUsername(name); setShowList(false); setChecking(true); setWikiAccount(null); setAuthError('');
+    try { setWikiAccount(await verifyWikimediaUsername({ username: name })); }
+    catch { /* leave unverified */ }
+    finally { setChecking(false); }
+  };
   useEffect(()=>{ if(!tier&&activeTiers.length) setTier((activeTiers.find(x=>x.priceNgn===0)??activeTiers[0])?.id??''); },[tier,activeTiers]);
   const selectedTier=activeTiers.find(x=>x.id===tier);
   const paidTier=!!selectedTier&&selectedTier.priceNgn>0;
   const checkoutReady=paystack.data?.enabled===true;
   const hasFreeTier=activeTiers.some(x=>x.priceNgn===0);
-  const submit=(ev:FormEvent)=>{ev.preventDefault(); if(!isSignedIn||!tier||!selectedTier)return; if(paidTier&&!checkoutReady){setPayError(t(locale,'Ịkwụ ụgwọ n’ịntanetị adịghị ugbu a.','Online checkout is not configured yet.'));return;} setPayError(''); register.mutate({data:{displayName,location,tierId:tier,shareWikiStats:consent,wikiAccounts:Object.entries(accounts).filter(([,username])=>username.trim()).map(([project,username])=>({project:project as WikimediaAccount['project'],username:username.trim()}))}}, {onSuccess:()=>{ cache.invalidateQueries({queryKey:getGetMyMembershipQueryKey()});cache.invalidateQueries({queryKey:getListMembersQueryKey()});cache.invalidateQueries({queryKey:getGetCommunityContributorsQueryKey()});if(paidTier){initializePayment({purpose:'membership',tierId:selectedTier.id}).then(r=>{window.location.href=r.authorizationUrl;}).catch(err=>{setPayError(err instanceof Error?err.message:t(locale,'Enweghị ike ịmalite ịkwụ ụgwọ.','Could not start checkout.'));setDone(true);});}else{setDone(true);}}});};
+  const submit=async(ev:FormEvent)=>{
+    ev.preventDefault();
+    if(!tier||!selectedTier)return;
+    if(paidTier&&!checkoutReady){setPayError(t(locale,'Ịkwụ ụgwọ n’ịntanetị adịghị ugbu a.','Online checkout is not configured yet.'));return;}
+    setPayError(''); setAuthError(''); setDone(false);
+    try{
+      if(!isSignedIn){
+        const payload:{email:string;password:string;username?:string;displayName?:string}={email,password};
+        if(wikiAccount?.verified) payload.username=wikiAccount.username;
+        if(displayName.trim()) payload.displayName=displayName.trim();
+        const created=await registerAccount.mutateAsync({data:payload});
+        setUser(created.user);
+      }
+      await register.mutateAsync({data:{displayName,location,tierId:tier,shareWikiStats:false,wikiAccounts:Object.entries(accounts).filter(([,username])=>username.trim()).map(([project,username])=>({project:project as WikimediaAccount['project'],username:username.trim()}))}});
+      cache.invalidateQueries({queryKey:getGetMyMembershipQueryKey()});
+      cache.invalidateQueries({queryKey:getGetCommunitySummaryQueryKey()});
+      cache.invalidateQueries({queryKey:getGetCommunityContributorsQueryKey()});
+      if(paidTier){
+        const r=await initializePayment({purpose:'membership',tierId:tier});
+        window.location.href=r.authorizationUrl;
+      } else {
+        setDone(true);
+      }
+    } catch(err){
+      setAuthError(asError(err));
+    }
+  };
   return <PageFrame locale={locale} setLocale={setLocale}><main className="inner-page join-page shell"><div className="page-kicker"><Wordmark/><span>MEMBERSHIP / ỊBỊ N’ỌTÚ</span></div><div className="join-intro"><div><h1 className="serif inner-title">{t(locale,'Bịa dịka ị dị.<br/>Soro n’ọrụ a.','Bring what you know.<br/>Find what you can grow.')}</h1><p className="inner-lede">{t(locale,'Ịbụ onye otu pụtara isonye n’obodo na-eme ka asụsụ Igbo pụta ìhè na Wikimedia. Kọwaa onwe gị n’ụzọ dị gị mma.', 'Membership connects you to a community making Igbo visible across Wikimedia. Tell us a little about yourself, in your own way.')}</p></div><div className="join-aside"><span className="eyebrow">A NOTE BEFORE YOU BEGIN</span><p>{t(locale,'A ga-egosipụta naanị ụgwọ ndị otu a haziri n’ezie. Ọ bụrụ na ọnweghị nhọrọ dị, biko kpọtụrụ obodo.', 'Only configured membership options appear here. If no option is available, please contact the community.')}</p></div></div>
     {done ? <div className="success-panel" data-testid="status-registration-success"><span className="success-mark"><Check/></span><span className="eyebrow">EDEBANYERE / RECEIVED</span><h2 className="serif">{t(locale,'Daalụ maka ịbịa.','Thank you for stepping in.')}</h2><p>{t(locale,'E zigara arịrịọ otu gị. Ọkwa gị nwere ike ichere nyocha ndị nchịkwa obodo.', 'Your membership request was received. Your status may remain pending while community administrators review it.')}</p><Link href="/member" className="btn-primary" data-testid="button-member-portal">{t(locale,'Gaa na oghere m','Go to my space')}<ArrowRight size={16}/></Link></div>
     : <form className="join-form" onSubmit={submit}>
       <div className="join-step"><div className="step-no">01</div><div className="step-body"><span className="eyebrow">{t(locale,'HỌRỌ Ọ̀TÚ','CHOOSE A MEMBERSHIP')}</span><h2 className="serif">{t(locale,'Ụzọ isonye','A way to belong')}</h2>
         {tiers.isLoading?<Skeleton rows={2}/>:tiers.error?<ErrorNotice message={asError(tiers.error)} retry={()=>tiers.refetch()}/>:activeTiers.length?<><div className="tier-options">{activeTiers.map(item=><label className={`tier-option ${tier===item.id?'selected':''} ${item.priceNgn>0&&!checkoutReady?'tier-unavailable':''}`} key={item.id} data-testid={`tier-option-${item.id}`}><input type="radio" name="tier" checked={tier===item.id} disabled={item.priceNgn>0&&!checkoutReady} onChange={()=>setTier(item.id)}/><span className="tier-radio"/><span className="tier-name"><b>{locale==='ig'?item.nameIg:item.nameEn}</b><small>{locale==='ig'?item.descriptionIg:item.descriptionEn}</small>{item.priceNgn>0&&!checkoutReady&&<small className="tier-checkout-warning">{t(locale,'Ịkwụ ụgwọ n’ịntanetị adịghị ugbu a','Online checkout is not configured')}</small>}</span><span className="tier-price">{item.priceNgn===0?t(locale,'N’efu','No fee'):new Intl.NumberFormat(locale==='ig'?'ig-NG':'en-NG',{style:'currency',currency:'NGN',maximumFractionDigits:0}).format(item.priceNgn)}<small>{item.interval==='free'?'':` / ${item.interval}`}</small></span></label>)}</div>{!checkoutReady&&!hasFreeTier&&<div className="notice paid-unavailable-notice"><CircleHelp size={18}/><span>{t(locale,'Nhọrọ niile nwere ụgwọ; enweghị ike ịdebanye aha n’enweghị usoro ịkwụ ụgwọ ahaziri.','Every available tier has a fee. Registration is unavailable until checkout is configured.')}</span></div>}</>:<div className="notice"><CircleHelp size={18}/><span>{t(locale,'E nwebeghị ọkwa otu a haziri. A naghị egosi ụgwọ e chepụtara echepụta.','Membership tiers have not been configured yet. No fee is being assumed.')}</span></div>}
       </div></div>
-      <div className="join-step"><div className="step-no">02</div><div className="step-body"><span className="eyebrow">{t(locale,'GWA ANYỊ BANYERE GỊ','TELL US ABOUT YOU')}</span><h2 className="serif">{t(locale,'Okwu ole gbasara gị.','A few words about you.')}</h2><div className="form-grid"><label>{t(locale,'Aha ị chọrọ iji','Name you go by')}<input className="input" required value={displayName} onChange={e=>setDisplayName(e.target.value)} data-testid="input-display-name" placeholder={t(locale,'Aha gị','Your name')}/></label><label>{t(locale,'Ebe ị nọ (ọ bụrụ na i chọrọ)','Where you are (optional)')}<input className="input" value={location} onChange={e=>setLocation(e.target.value)} data-testid="input-location" placeholder={t(locale,'Obodo / mba','City / country')}/></label></div>
+      <div className="join-step"><div className="step-no">02</div><div className="step-body"><span className="eyebrow">{t(locale,'GWA ANYỊ BANYERE GỊ','TELL US ABOUT YOU')}</span><h2 className="serif">{t(locale,'Okwu ole gbasara gị.','A few words about you.')}</h2>{!isSignedIn&&<><div className="form-grid"><label>{t(locale,'Email','Email')}<input className="input" type="email" required value={email} onChange={e=>setEmail(e.target.value)} autoComplete="email" data-testid="input-join-email"/></label><label>{t(locale,'Okwuntughe (nke karịrị 8)','Password (at least 8 characters)')}<input className="input" type="password" minLength={8} required value={password} onChange={e=>setPassword(e.target.value)} autoComplete="new-password" data-testid="input-join-password"/></label></div>
+          <label className="auth-field-username">{t(locale,'Aha Wikimedia (nhọrọ)','Wikimedia username (optional)')}<input className="input" value={wikiUsername} onChange={e=>{setWikiUsername(e.target.value);setShowList(true);setWikiAccount(null);}} onFocus={()=>setShowList(true)} autoComplete="off" placeholder={t(locale,'Malite pinye aha gi','Start typing your username')} data-testid="input-join-wiki-username"/>{showList&&suggestions.length>0&&<ul className="auth-suggestions">{suggestions.map(s=><li key={s.id}><button type="button" onClick={()=>void pickWikiUsername(s.name)}>{s.name}</button></li>)}</ul>}</label>
+          {checking&&<span className="status-pill"><LoaderCircle className="spin" size={14}/>{t(locale,'Na-enyocha','Checking')}</span>}
+          {wikiAccount?.verified&&<div className="notice" role="status"><Check size={18}/><span><b>{wikiAccount.username}</b> · {wikiAccount.editCount.toLocaleString()} {t(locale,'ndezi — a ga-ejikọta ya','edits — will be linked')}</span></div>}</>}
+          <div className="form-grid"><label>{t(locale,'Aha ị chọrọ iji','Name you go by')}<input className="input" required value={displayName} onChange={e=>setDisplayName(e.target.value)} data-testid="input-display-name" placeholder={t(locale,'Aha gị','Your name')}/></label><label>{t(locale,'Ebe ị nọ (ọ bụrụ na i chọrọ)','Where you are (optional)')}<input className="input" value={location} onChange={e=>setLocation(e.target.value)} data-testid="input-location" placeholder={t(locale,'Obodo / mba','City / country')}/></label></div>
          <details className="wiki-account-fields"><summary>{t(locale,'Tinye akaụntụ Wikimedia gị (ọ bụrụ na i nwere)','Add Wikimedia accounts (if you have them)')}<ChevronDown size={16}/></summary><p>{t(locale,'Aha njirimara ndị a bụ naanị maka njikọ akaụntụ. Naanị ọnụ ọgụgụ nchịkọta nwere nkwenye ka a ga-eji maka stats.','Usernames are collected only to link accounts. Only consented, aggregate totals may be used for statistics.')}</p><div className="account-grid">{projects.map(p=><label key={p.id}>{p.name}<input className="input" maxLength={255} value={accounts[p.id]??''} onChange={e=>setAccounts({...accounts,[p.id]:e.target.value})} data-testid={`input-wiki-${p.id}`} placeholder="Username"/></label>)}</div></details>
-         {consent&&!hasWikiUsername&&<div className="notice" role="status"><CircleHelp size={18}/><span>{t(locale,'Tinye opekata mpe otu aha njirimara Wikimedia ka e wee gbakọọ stats.','Add at least one Wikimedia username to enable contribution statistics.')}</span></div>}
-        <label className="consent-row"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)} data-testid="input-stats-consent"/><span><b>{t(locale,'Ekwere m ka e gosi aha njirimara Wikimedia m na ngụkọta onyinye m n’ihu ọha.','I consent to my Wikimedia usernames and contribution totals being shown publicly.')}</b><small>{t(locale,'Nke a bụ nhọrọ. Ọ bụrụ na i kwe, aha njirimara Wikimedia gị na ngụkọta onyinye n’otu ọrụ ọ bụla ga-apụta n’ihu ọha na peeji ndị nyere aka. Ị nwere ike wepụ nkwenye gị oge ọ bụla.','This is optional. If you opt in, your Wikimedia usernames and per-project contribution counts appear on the public contributors page. You can withdraw consent at any time.')}</small></span></label>
+          <div className="notice" role="status"><ShieldCheck size={18}/><span>{t(locale,'Ị nwere ike họrọ ịkekọrịta ọnụ ọgụgụ onyinye gị ma emesịa site na nchịkọta akaụntụ gị.','You can choose to share your contribution totals later from your member dashboard.')}</span></div>
       </div></div>
       {register.error&&<ErrorNotice message={asError(register.error)}/>}
       {payError&&<div className="notice" role="alert"><CircleHelp size={18}/><span>{payError}</span></div>}
-      <div className="join-submit"><span>{t(locale,'Mgbe i zipụrụ, ọkwa nwere ike ịbụ pending ruo mgbe e nyochara ya.','After submission, membership may stay pending until reviewed.')}</span>{isSignedIn?<button className="btn-primary" type="submit" disabled={!tier||(paidTier&&!checkoutReady)||(consent&&!hasWikiUsername)||register.isPending} data-testid="button-submit-membership">{register.isPending?<LoaderCircle className="spin" size={16}/>:paidTier?t(locale,'Gaa n’ịkwụ ụgwọ','Continue to payment'):t(locale,'Zipu arịrịọ otu','Submit membership request')}<ArrowRight size={16}/></button>:<div className="join-auth-notice"><span>{t(locale,'Banye ma ọ bụ mepụta akaụntụ iji debanye aha.','Sign in or create an account to register.')}</span><div><Link href="/sign-in">{t(locale,'Banye','Sign in')}</Link><Link href="/sign-up">{t(locale,'Mepụta akaụntụ','Create account')}</Link></div></div>}</div>
+      {authError&&<div className="notice error-notice" role="alert" data-testid="join-auth-error"><CircleHelp size={18}/><span>{authError}</span></div>}
+      <div className="join-submit"><span>{t(locale,'Mgbe i zipụrụ, ọkwa nwere ike ịbụ pending ruo mgbe e nyochara ya.','After submission, membership may stay pending until reviewed.')}</span><button className="btn-primary" type="submit" disabled={!tier||(paidTier&&!checkoutReady)||register.isPending||registerAccount.isPending||(!isSignedIn&&(!email.trim()||password.length<8))} data-testid="button-submit-membership">{register.isPending||registerAccount.isPending?<LoaderCircle className="spin" size={16}/>:paidTier?t(locale,'Gaa n’ịkwụ ụgwọ','Continue to payment'):isSignedIn?t(locale,'Zipu arịrịọ otu','Submit membership request'):t(locale,'Mepụta akaụntụ ma debanye aha','Create account & join')}<ArrowRight size={16}/></button></div>
     </form>}</main></PageFrame>;
 }
 function DonatePage({ locale, setLocale }: { locale: Locale; setLocale: (v: Locale) => void }) {
@@ -819,6 +947,25 @@ function MemberBillingPanel({ locale, billing, renew, busy }: { locale: Locale; 
   if(!d) return <section className="member-panel member-billing" data-testid="member-billing"><span className="eyebrow">{t(locale,'ỌNỌDỤ ỊKWỤ ỤGWỌ','BILLING STATUS')}</span><h2 className="serif">{t(locale,'Onyinye gị na-akwado ọrụ a.','Your giving powers the work.')}</h2><p>{t(locale,'E dekọrọghị ịkwụ ụgwọ ọ bụla na akaụntụ a ugbu a.','No billing has been recorded on this account yet.')}</p></section>;
   return <section className="member-panel member-billing" data-testid="member-billing"><span className="eyebrow">{t(locale,'ỌNỌDỤ ỊKWỤ ỤGWỌ','BILLING STATUS')}</span><h2 className="serif">{t(locale,'Onyinye gị na-akwado ọrụ a.','Your giving powers the work.')}</h2><div className="member-status-bar"><div><span className="eyebrow">{t(locale,'ỌNỌDỤ','STATUS')}</span><strong className={`member-status status-${d.status}`} data-testid="status-billing">{d.status}</strong></div><div><span className="eyebrow">{t(locale,'MWEKA ỌZỌ','RENEWS')}</span><strong>{d.renewsAt?new Date(d.renewsAt).toLocaleDateString(locale==='ig'?'ig-NG':'en-GB'):t(locale,'Ọ dịghị','—')}</strong></div><div><span className="eyebrow">{t(locale,'EGO AKWỤRỤ','TOTAL PAID')}</span><strong>{formatNgn(d.totalPaidNgn)}</strong></div></div>{d.tier&&d.tier.priceNgn>0&&<button className="btn-primary" type="button" onClick={renew} disabled={busy} data-testid="button-renew-membership"><CreditCard size={15}/>{d.status==='expired'?t(locale,'Mee ka ọ dị ọhụrụ','Renew membership'):t(locale,'Kwụọ ụgwọ ọzọ','Renew now')}</button>}</section>;
 }
+function MemberConsentToggle({ locale, shareWikiStats, hasAccounts }: { locale: Locale; shareWikiStats: boolean; hasAccounts: boolean }) {
+  const cache = useQueryClient();
+  const update = useUpdateMyMembership();
+  const [error, setError] = useState('');
+  const toggle = () => {
+    setError('');
+    update.mutate({ data: { shareWikiStats: !shareWikiStats } }, {
+      onSuccess: () => cache.invalidateQueries({ queryKey: getGetMyMembershipQueryKey() }),
+      onError: (err) => setError(asError(err)),
+    });
+  };
+  return <section className="member-panel member-consent">
+    <span className="eyebrow">{t(locale, 'NKWENYE / NKWENYE ONYE OTU', 'CONSENT / SHARING')}</span>
+    <h2 className="serif">{t(locale, 'Kwe ka e gosi onyinye m','Show my contributions publicly')}</h2>
+    <label className="member-consent-toggle"><input type="checkbox" checked={shareWikiStats} disabled={update.isPending} onChange={toggle} data-testid="input-member-consent-toggle"/><span>{t(locale,'Kwenye ka e gosi aha njirimara Wikimedia gị na ngụkọta onyinye gị n’ihu ọha na peeji ndị nyere aka. Ọ gaghị egosi aha nzuzo gị.','Opt in to show your Wikimedia usernames and per-project contribution totals on the public contributors page. Your real name is never shown.')}</span></label>
+    {!hasAccounts&&<p className="private-note">{t(locale,'Tinye akaụntụ Wikimedia na ngalaba “Njikọ ọrụ m” iji nwee ike ịkesa onyinye gị.','Add a Wikimedia username under “Wikimedia links” before you can share contributions.')}</p>}
+    {update.isError&&<div className="notice error-notice" role="alert"><CircleHelp size={18}/><span>{asError(update.error)}</span></div>}
+  </section>;
+}
 function MemberPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Locale) => void }) {
   const [tab,setTab]=useState<MemberTab>('overview');
   const membership=useGetMyMembership({query:{queryKey:getGetMyMembershipQueryKey()}});
@@ -851,10 +998,11 @@ function MemberPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Loca
           {tab==='overview'&&<>
             <div className="member-status-bar"><div><span className="eyebrow">{t(locale,'ỌNỌDỤ OTU','MEMBERSHIP STATUS')}</span><strong className={`member-status status-${status}`} data-testid="status-member">{status}</strong></div><div><span className="eyebrow">{t(locale,'EDEBANYERE','MEMBER SINCE')}</span><strong>{new Date(membership.data.createdAt).toLocaleDateString(locale==='ig'?'ig-NG':'en-GB',{month:'long',year:'numeric'})}</strong></div><div><span className="eyebrow">{t(locale,'ỌNỌDỤ','LOCATION')}</span><strong>{membership.data.location||t(locale,'E nyeghị','Not shared')}</strong></div></div>
             {status==='pending'&&<div className="notice pending-notice"><ShieldCheck size={18}/><span>{t(locale,'Arịrịọ gị ka na-echere nyocha ndị nchịkwa obodo.','Your membership request is awaiting community review.')}</span></div>}
+            <MemberConsentToggle locale={locale} shareWikiStats={!!membership.data.shareWikiStats} hasAccounts={!!membership.data.wikiAccounts?.length}/>
             <MemberBillingPanel locale={locale} billing={billing} renew={renew} busy={verify.isPending}/>
             <section className="member-panel member-shortcuts"><span className="eyebrow">EXPLORE / GAA N’IHU</span><h2 className="serif">{t(locale,'Gaa n’ihu n’ebe ọzọ.','Keep exploring.')}</h2><div className="member-quick-links">{explore.map(([href,label,icon])=><Link key={href} href={href}>{icon}<span>{label}</span><ArrowUpRight size={15}/></Link>)}</div></section>
           </>}
-          {tab==='contributions'&&<section className="member-panel"><span className="eyebrow">MY CONTRIBUTION / AKỤKỌ M</span><h2 className="serif">{t(locale,'Ọnụ ọgụgụ anyị na-arụ ọnụ.','The work we share.')}</h2>{!membership.data.shareWikiStats?<div className="private-stat"><ShieldCheck size={19}/><div><b>{t(locale,'Ị họrọghị isonye na stats.','Contribution stats are switched off.')}</b><p>{t(locale,'Enweghị stats nkeonwe a na-anakọta. Onye nchịkwa nwere ike ime mgbanwe nkwenye ma ọ bụrụ na ị rịọ.','No individual contribution statistics are being collected under your current choice.')}</p></div></div>:stats.isLoading?<Skeleton rows={3}/>:stats.error?<ErrorNotice message={asError(stats.error)} retry={()=>stats.refetch()}/>:<><div className="member-total" data-testid="member-total-contributions"><strong>{stats.data?.find(x=>x.memberId===membership.data?.id)?.totalContributions??0}</strong><span>{t(locale,'onyinye e dekọrọ n’ọrụ Wikimedia','recorded Wikimedia contributions')}</span></div><div className="member-project-stats">{(stats.data?.find(x=>x.memberId===membership.data?.id)?.projects??[]).filter(x=>x.available).map(x=><div key={x.project} data-testid={`member-stat-${x.project}`}><span>{projects.find(p=>p.id===x.project)?.name??x.project}</span><b>{x.contributions.toLocaleString()}</b></div>)}</div><p className="private-note">{t(locale,'Stats ndị a bụ nkeonwe, dabere na nkwenye gị ma dị naanị n’akụkọ gị.','These figures are private, consent-based and shown only in your account.')}</p></>}</section>}
+          {tab==='contributions'&&<section className="member-panel"><span className="eyebrow">MY CONTRIBUTION / AKỤKỌ M</span><h2 className="serif">{t(locale,'Ọnụ ọgụgụ anyị na-arụ ọnụ.','The work we share.')}</h2>{!membership.data.shareWikiStats?<div className="private-stat"><ShieldCheck size={19}/><div><b>{t(locale,'Ị họrọghị isonye na stats.','Contribution stats are switched off.')}</b><p>{t(locale,'Enweghị stats nkeonwe a na-anakọta ugbu a. Gbanyere nkwenye na nchịkọta ka ị malite ịkekọrịta.','No individual contribution statistics are being collected under your current choice. Turn on consent in Overview to start sharing.')}</p></div></div>:stats.isLoading?<Skeleton rows={3}/>:stats.error?<ErrorNotice message={asError(stats.error)} retry={()=>stats.refetch()}/>:<><div className="member-total" data-testid="member-total-contributions"><strong>{stats.data?.find(x=>x.memberId===membership.data?.id)?.totalContributions??0}</strong><span>{t(locale,'onyinye e dekọrọ n’ọrụ Wikimedia','recorded Wikimedia contributions')}</span></div><div className="member-project-stats">{(stats.data?.find(x=>x.memberId===membership.data?.id)?.projects??[]).filter(x=>x.available).map(x=><div key={x.project} data-testid={`member-stat-${x.project}`}><span>{projects.find(p=>p.id===x.project)?.name??x.project}</span><b>{x.contributions.toLocaleString()}</b></div>)}</div><p className="private-note">{t(locale,'Stats ndị a bụ nkeonwe, dabere na nkwenye gị ma dị naanị n’akụkọ gị.','These figures are private, consent-based and shown only in your account.')}</p></>}</section>}
           {tab==='accounts'&&<section className="member-panel member-projects"><span className="eyebrow">MY WIKIMEDIA ACCOUNTS</span><h2 className="serif">{t(locale,'Njikọ ọrụ m','My project links')}</h2>{membership.data.wikiAccounts?.length?membership.data.wikiAccounts.map(a=><div className="account-line" key={a.project}><span className="project-glyph">{projects.find(p=>p.id===a.project)?.mark??'W'}</span><span>{projects.find(p=>p.id===a.project)?.name??a.project}</span><b>{a.username}</b></div>):<p>{t(locale,'I tinyebeghị akaụntụ Wikimedia.','No Wikimedia accounts added yet.')}</p>}<Link href="/projects" className="arrow-link">{t(locale,'Chọgharịa ọrụ','Explore projects')}<ArrowRight size={15}/></Link></section>}
           {tab==='billing'&&<MemberBillingPanel locale={locale} billing={billing} renew={renew} busy={verify.isPending}/>}
         </>}
@@ -953,9 +1101,52 @@ function TiersAdmin({query}:{query:ReturnType<typeof useListMembershipTiers<Memb
   return <>{(open||!query.data?.length)&&<AdminForm title={selected?'Edit membership tier':'Create membership tier'} onSubmit={save} onCancel={reset} busy={create.isPending||update.isPending} error={create.error||update.error}><div className="form-grid"><AdminInput label="Name · English" value={draft.nameEn} onChange={v=>setDraft({...draft,nameEn:v})}/><AdminInput label="Name · Igbo" value={draft.nameIg} onChange={v=>setDraft({...draft,nameIg:v})}/><AdminInput label="Description · English" value={draft.descriptionEn} onChange={v=>setDraft({...draft,descriptionEn:v})}/><AdminInput label="Description · Igbo" value={draft.descriptionIg} onChange={v=>setDraft({...draft,descriptionIg:v})}/><label className="admin-field">Price (NGN)<input type="number" min="0" className="input" value={draft.priceNgn} onChange={e=>setDraft({...draft,priceNgn:Number(e.target.value)})}/></label><label className="admin-field">Interval<select className="input" value={draft.interval} onChange={e=>setDraft({...draft,interval:e.target.value as MembershipTierInput['interval']})}>{['free','monthly','annual','once'].map(x=><option key={x} value={x}>{x}</option>)}</select></label></div><div className="form-grid"><AdminText label="Benefits · English (one per line)" value={draft.benefitsEn.join('\n')} onChange={v=>setDraft({...draft,benefitsEn:v.split('\n').filter(Boolean)})}/><AdminText label="Benefits · Igbo (one per line)" value={draft.benefitsIg.join('\n')} onChange={v=>setDraft({...draft,benefitsIg:v.split('\n').filter(Boolean)})}/></div><AdminCheck label="Active and visible for registration" checked={draft.active} onChange={v=>setDraft({...draft,active:v})}/></AdminForm>}
   <AdminLoad query={query}/>{!query.isLoading&&!query.error&&<><AdminToolbar label={`${query.data?.length??0} tiers`} onAdd={()=>{setSelected(null);setDraft(blank);setOpen(true)}}/><div className="admin-table">{(query.data??[]).map(x=><div className="admin-row" key={x.id} data-testid={`admin-tier-${x.id}`}><div className="row-main"><b>{x.nameEn}</b><small>{x.priceNgn} NGN · {x.interval}</small></div><span className={`admin-status ${x.active?'on':'off'}`}>{x.active?'Active':'Inactive'}</span><button className="icon-action" onClick={()=>edit(x)} data-testid={`button-edit-tier-${x.id}`}><Pencil size={15}/></button><button className="icon-action danger" onClick={()=>{if(confirm(`Delete tier “${x.nameEn}”?`))remove.mutate({tierId:x.id},{onSuccess:()=>cache.invalidateQueries({queryKey:getListMembershipTiersQueryKey()})});}} data-testid={`button-delete-tier-${x.id}`}><Trash2 size={15}/></button></div>)}</div></>}</>;
 }
-function MembersAdmin({query,tiers}:{query:ReturnType<typeof useListMembers<Member[]>>;tiers:MembershipTier[]}) {
-  const cache=useQueryClient();const update=useUpdateMember();
-   return <><AdminLoad query={query}/>{!query.isLoading&&!query.error&&(query.data?.length?<div className="admin-table">{query.data.map(member=><div className="member-review-row" key={member.id} data-testid={`admin-member-${member.id}`}><div className="row-main"><b>{member.displayName}</b><small>{member.location||'Location not shared'} · {new Date(member.createdAt).toLocaleDateString()}</small></div><span className={`admin-status ${member.status==='active'?'on':'off'}`}>{member.status}</span><select aria-label={`Membership tier for ${member.displayName}`} className="admin-select" value={member.tierId} onChange={e=>update.mutate({memberId:member.id,data:{tierId:e.target.value}},{onSuccess:()=>cache.invalidateQueries({queryKey:getListMembersQueryKey()})})} data-testid={`select-member-tier-${member.id}`}>{tiers.map(t=><option key={t.id} value={t.id}>{t.nameEn}</option>)}</select><select aria-label={`Status for ${member.displayName}`} className="admin-select" value={member.status} onChange={e=>update.mutate({memberId:member.id,data:{status:e.target.value as 'pending'|'active'|'paused'}},{onSuccess:()=>{cache.invalidateQueries({queryKey:getListMembersQueryKey()});cache.invalidateQueries({queryKey:getGetCommunitySummaryQueryKey()})}})} data-testid={`select-member-status-${member.id}`}><option value="pending">pending</option><option value="active">active</option><option value="paused">paused</option></select>{member.shareWikiStats?<label className="consent-admin"><input type="checkbox" checked aria-label={`Revoke stats consent for ${member.displayName}`} onChange={()=>{if(confirm(`Revoke ${member.displayName}’s statistics consent? This also permanently deletes their saved Wikimedia usernames.`))update.mutate({memberId:member.id,data:{shareWikiStats:false}},{onSuccess:()=>cache.invalidateQueries({queryKey:getListMembersQueryKey()})});}} data-testid={`input-member-consent-${member.id}`}/>Stats consent</label>:<span className="consent-admin consent-off">Stats not shared</span>}</div>)}</div>:<EmptyAdmin title="No member registrations yet" text="New membership requests will appear here for review."/>)}{update.error&&<ErrorNotice message={asError(update.error)}/>}</>;
+function MembersAdmin({query,tiers}:{query:ReturnType<typeof useListMembers<AdminMember[]>>;tiers:MembershipTier[]}) {
+  const locale=useLocale();
+  const cache=useQueryClient();
+  const update=useUpdateMember();
+  const remove=useDeleteMember();
+  const account=useUpdateMemberAccount();
+  const [editingId,setEditingId]=useState<string|null>(null);
+  const [draft,setDraft]=useState({displayName:'',location:''});
+  const [acctId,setAcctId]=useState<string|null>(null);
+  const [acct,setAcct]=useState({email:'',username:'',password:''});
+  const [error,setError]=useState('');
+  const refresh=()=>cache.invalidateQueries({queryKey:getListMembersQueryKey()});
+  const refreshAll=()=>{refresh();cache.invalidateQueries({queryKey:getGetCommunitySummaryQueryKey()});cache.invalidateQueries({queryKey:getGetCommunityContributorsQueryKey()});};
+  const startEdit=(m:AdminMember)=>{setEditingId(m.id);setDraft({displayName:m.displayName,location:m.location});setError('');};
+  const saveProfile=(m:AdminMember)=>{setError('');if(!draft.displayName.trim()){setError(t(locale,'Tinye aha onye otu.','Enter the member name.'));return;}update.mutate({memberId:m.id,data:{displayName:draft.displayName.trim(),location:draft.location.trim()}},{onSuccess:()=>{setEditingId(null);refresh();},onError:e=>setError(asError(e))});};
+  const startAccount=(m:AdminMember)=>{setAcctId(m.id);setAcct({email:m.email??'',username:m.username??'',password:''});setError('');};
+  const saveAccount=(m:AdminMember)=>{setError('');const data:{email?:string;username?:string;password?:string}={};if(acct.email.trim()&&acct.email.trim()!==(m.email??''))data.email=acct.email.trim();if(acct.username.trim()&&acct.username.trim()!==(m.username??''))data.username=acct.username.trim();if(acct.password)data.password=acct.password;if(!data.email&&!data.username&&!data.password){setError(t(locale,'Gbanwee ihe ọ bụla tupu ichekwa.','Change something before saving.'));return;}account.mutate({memberId:m.id,data},{onSuccess:()=>{setAcctId(null);refresh();},onError:e=>setError(asError(e))});};
+  const setStatus=(m:AdminMember,status:'pending'|'active'|'paused')=>{setError('');update.mutate({memberId:m.id,data:{status}},{onSuccess:refreshAll,onError:e=>setError(asError(e))});};
+  const revokeConsent=(m:AdminMember)=>{if(!confirm(t(locale,`Wepụ nkwenye stats nke ${m.displayName}? Nke a ga-ehichapụkwa aha njirimara Wikimedia ha chekwara.`,`Revoke ${m.displayName}’s statistics consent? This also deletes their saved Wikimedia usernames.`)))return;setError('');update.mutate({memberId:m.id,data:{shareWikiStats:false}},{onSuccess:refresh,onError:e=>setError(asError(e))});};
+  const deleteMember=(m:AdminMember)=>{if(!confirm(t(locale,`Hichapụ ${m.displayName} na akauntu nbata ha kpamkpam? Enweghị ike iweghachi ya.`,`Delete ${m.displayName} and their login account permanently? This cannot be undone.`)))return;setError('');remove.mutate({memberId:m.id},{onSuccess:refreshAll,onError:e=>setError(asError(e))});};
+  const busy=update.isPending||remove.isPending||account.isPending;
+  return <><AdminLoad query={query}/>{error&&<div className="notice error-notice" role="alert"><CircleHelp size={18}/><span>{error}</span></div>}{!query.isLoading&&!query.error&&(query.data?.length?<div className="admin-table">{query.data.map(m=>{
+    const editing=editingId===m.id;
+    const editingAccount=acctId===m.id;
+    return <div className="member-review-row admin-member-row" key={m.id} data-testid={`admin-member-${m.id}`}>
+      <div className="row-main">
+        {editing
+          ? <div className="member-inline-edit"><input className="input" aria-label={t(locale,'Aha onye otu','Member name')} value={draft.displayName} onChange={e=>setDraft({...draft,displayName:e.target.value})} data-testid={`input-member-name-${m.id}`}/><input className="input" aria-label={t(locale,'Ebe','Location')} value={draft.location} onChange={e=>setDraft({...draft,location:e.target.value})} data-testid={`input-member-location-${m.id}`}/><button type="button" className="btn-primary small" disabled={busy} onClick={()=>saveProfile(m)} data-testid={`button-save-member-${m.id}`}>{t(locale,'Chekwaa','Save')}</button><button type="button" className="icon-action" onClick={()=>setEditingId(null)} aria-label={t(locale,'Kagbuo','Cancel')}><X size={15}/></button></div>
+          : <b>{m.displayName}</b>}
+        <small>{m.location||t(locale,'E kesaghị ebe','Location not shared')} · {new Date(m.createdAt).toLocaleDateString()} · {localizeAdmin(locale,m.role)}</small>
+        <small className="member-account-line" data-testid={`member-account-${m.id}`}>{m.email??t(locale,'Enweghị email','No email')} · {m.username?`@${m.username}`:t(locale,'Enweghị aha njirimara','No username')}</small>
+        {editingAccount&&<div className="member-inline-edit" data-testid={`member-account-form-${m.id}`}><input className="input" type="email" placeholder="Email" value={acct.email} onChange={e=>setAcct({...acct,email:e.target.value})} data-testid={`input-account-email-${m.id}`}/><input className="input" placeholder={t(locale,'Aha njirimara','Username')} value={acct.username} onChange={e=>setAcct({...acct,username:e.target.value})} data-testid={`input-account-username-${m.id}`}/><input className="input" type="password" placeholder={t(locale,'Okwuntughe ọhụrụ','New password')} value={acct.password} onChange={e=>setAcct({...acct,password:e.target.value})} data-testid={`input-account-password-${m.id}`}/><button type="button" className="btn-primary small" disabled={busy} onClick={()=>saveAccount(m)} data-testid={`button-save-account-${m.id}`}>{t(locale,'Chekwaa akauntu','Save account')}</button><button type="button" className="icon-action" onClick={()=>setAcctId(null)} aria-label={t(locale,'Kagbuo','Cancel')}><X size={15}/></button></div>}
+      </div>
+      <span className={`admin-status ${m.status==='active'?'on':'off'}`}>{localizeAdmin(locale,m.status)}</span>
+      <select aria-label={t(locale,'Ọkwa otu','Membership tier')} className="admin-select" value={m.tierId} onChange={e=>update.mutate({memberId:m.id,data:{tierId:e.target.value}},{onSuccess:refresh})} data-testid={`select-member-tier-${m.id}`}>{tiers.map(tier=><option key={tier.id} value={tier.id}>{tier.nameEn}</option>)}</select>
+      <select aria-label={t(locale,'Ọnọdụ','Status')} className="admin-select" value={m.status} onChange={e=>setStatus(m,e.target.value as 'pending'|'active'|'paused')} data-testid={`select-member-status-${m.id}`}><option value="pending">{localizeAdmin(locale,'pending')}</option><option value="active">{localizeAdmin(locale,'active')}</option><option value="paused">{localizeAdmin(locale,'paused')}</option></select>
+      {m.shareWikiStats?<label className="consent-admin"><input type="checkbox" checked readOnly onChange={()=>revokeConsent(m)} data-testid={`input-member-consent-${m.id}`}/>{t(locale,'Nkwenye stats','Stats consent')}</label>:<span className="consent-admin consent-off">{t(locale,'E kesaghị stats','Stats not shared')}</span>}
+      <div className="member-actions">
+        {m.status!=='active'&&<button type="button" className="icon-action" disabled={busy} onClick={()=>setStatus(m,'active')} title={t(locale,'Mepee','Activate')} data-testid={`button-activate-member-${m.id}`}><Check size={15}/></button>}
+        {m.status==='active'&&<button type="button" className="icon-action" disabled={busy} onClick={()=>setStatus(m,'paused')} title={t(locale,'Kwụsịtụ','Suspend')} data-testid={`button-suspend-member-${m.id}`}><Pause size={15}/></button>}
+        <button type="button" className="icon-action" onClick={()=>startEdit(m)} title={t(locale,'Dezie profaịlụ','Edit profile')} data-testid={`button-edit-member-${m.id}`}><Pencil size={15}/></button>
+        <button type="button" className="icon-action" onClick={()=>startAccount(m)} title={t(locale,'Akauntu nbata','Login account')} data-testid={`button-account-member-${m.id}`}><Settings2 size={15}/></button>
+        <button type="button" className="icon-action danger" disabled={busy} onClick={()=>deleteMember(m)} title={t(locale,'Hichapụ','Delete')} data-testid={`button-delete-member-${m.id}`}><Trash2 size={15}/></button>
+      </div>
+    </div>;
+  })}</div>:<EmptyAdmin title="No members yet" text="Member registrations will appear here."/>)}</>;
 }
 function SettingsAdmin({query}:{query:ReturnType<typeof useGetSiteSettings<SiteSettings>>}) {
   const cache=useQueryClient();const update=useUpdateSiteSettings();const [initialized,setInitialized]=useState(false);const [draft,setDraft]=useState<SiteSettingsInput>({donationUrl:null,contactEmail:'',contactAddress:'',currency:'NGN',donationEnabled:false});
@@ -1130,7 +1321,7 @@ function HomeRedirect({locale,setLocale}:{locale:Locale;setLocale:(v:Locale)=>vo
 function AuthRoutes({locale,setLocale}:{locale:Locale;setLocale:(v:Locale)=>void}){
   return <Switch>
       <Route path="/" component={()=> <HomeRedirect locale={locale} setLocale={setLocale}/>}/>
-      <Route path="/sign-in/*?" component={()=> <SignInPage locale={locale} setLocale={setLocale}/>}/><Route path="/sign-up/*?" component={()=> <SignUpPage locale={locale} setLocale={setLocale}/>}/><Route path="/complete-profile" component={()=> <CompleteProfilePage locale={locale} setLocale={setLocale}/>}/>
+      <Route path="/sign-in/*?" component={()=> <SignInPage locale={locale} setLocale={setLocale}/>}/><Route path="/sign-up/*?" component={()=> <JoinPage locale={locale} setLocale={setLocale}/>}/><Route path="/complete-profile" component={()=> <CompleteProfilePage locale={locale} setLocale={setLocale}/>}/>
       <Route path="/projects" component={()=> <ProjectsPage locale={locale} setLocale={setLocale}/>}/>
       <Route path="/events" component={()=> <EventsPage locale={locale} setLocale={setLocale}/>}/>
       <Route path="/community" component={()=> <CommunityPage locale={locale} setLocale={setLocale}/>}/>

@@ -715,7 +715,37 @@ export const GetMyMembershipResponse = zod.object({
 
 
 /**
- * @summary List registered members for authorized administrators
+ * @summary Update the current member's own profile preferences
+ */
+
+
+
+export const UpdateMyMembershipBody = zod.object({
+  "displayName": zod.string().min(1).optional(),
+  "location": zod.string().optional(),
+  "shareWikiStats": zod.boolean().optional()
+})
+
+
+
+
+export const UpdateMyMembershipResponse = zod.object({
+  "id": zod.string(),
+  "displayName": zod.string(),
+  "location": zod.string(),
+  "tierId": zod.string(),
+  "status": zod.enum(['pending', 'active', 'paused']),
+  "wikiAccounts": zod.array(zod.object({
+  "project": zod.enum(['igwiki', 'igwikt', 'igwikiquote', 'wikidata', 'commons', 'wikifunctions', 'enwiki', 'wikisource', 'meta']),
+  "username": zod.string().min(1)
+})),
+  "shareWikiStats": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List registered members with their linked account for administrators
  */
 
 
@@ -732,18 +762,28 @@ export const ListMembersResponseItem = zod.object({
 })),
   "shareWikiStats": zod.boolean(),
   "createdAt": zod.coerce.date()
-})
+}).and(zod.object({
+  "userId": zod.string(),
+  "email": zod.string().nullable(),
+  "username": zod.string().nullable(),
+  "role": zod.enum(['member', 'admin'])
+}))
 export const ListMembersResponse = zod.array(ListMembersResponseItem)
 
 
 /**
- * @summary Update a member's tier or approval status
+ * @summary Update a member's profile, tier or approval status
  */
 export const UpdateMemberParams = zod.object({
   "memberId": zod.coerce.string()
 })
 
+
+
+
 export const UpdateMemberBody = zod.object({
+  "displayName": zod.string().min(1).optional(),
+  "location": zod.string().optional(),
   "tierId": zod.string().optional(),
   "status": zod.enum(['pending', 'active', 'paused']).optional(),
   "shareWikiStats": zod.boolean().optional()
@@ -764,7 +804,63 @@ export const UpdateMemberResponse = zod.object({
 })),
   "shareWikiStats": zod.boolean(),
   "createdAt": zod.coerce.date()
+}).and(zod.object({
+  "userId": zod.string(),
+  "email": zod.string().nullable(),
+  "username": zod.string().nullable(),
+  "role": zod.enum(['member', 'admin'])
+}))
+
+
+/**
+ * @summary Delete a member and their linked login account
+ */
+export const DeleteMemberParams = zod.object({
+  "memberId": zod.coerce.string()
 })
+
+export const DeleteMemberResponse = zod.void()
+
+
+/**
+ * @summary Update the linked login account (email, username or password)
+ */
+export const UpdateMemberAccountParams = zod.object({
+  "memberId": zod.coerce.string()
+})
+
+
+export const updateMemberAccountBodyPasswordMin = 8;
+
+
+
+export const UpdateMemberAccountBody = zod.object({
+  "email": zod.string().email().optional(),
+  "username": zod.string().min(1).optional(),
+  "password": zod.string().min(updateMemberAccountBodyPasswordMin).optional()
+})
+
+
+
+
+export const UpdateMemberAccountResponse = zod.object({
+  "id": zod.string(),
+  "displayName": zod.string(),
+  "location": zod.string(),
+  "tierId": zod.string(),
+  "status": zod.enum(['pending', 'active', 'paused']),
+  "wikiAccounts": zod.array(zod.object({
+  "project": zod.enum(['igwiki', 'igwikt', 'igwikiquote', 'wikidata', 'commons', 'wikifunctions', 'enwiki', 'wikisource', 'meta']),
+  "username": zod.string().min(1)
+})),
+  "shareWikiStats": zod.boolean(),
+  "createdAt": zod.coerce.date()
+}).and(zod.object({
+  "userId": zod.string(),
+  "email": zod.string().nullable(),
+  "username": zod.string().nullable(),
+  "role": zod.enum(['member', 'admin'])
+}))
 
 
 /**
@@ -789,7 +885,6 @@ export const GetCommunitySummaryResponse = zod.object({
  */
 export const GetCommunityContributorsResponseItem = zod.object({
   "memberId": zod.string(),
-  "displayName": zod.string(),
   "totalContributions": zod.number().int(),
   "projects": zod.array(zod.object({
   "project": zod.string(),

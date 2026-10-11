@@ -8,6 +8,9 @@
 import type { MemberAdminUpdateStatus } from './memberAdminUpdateStatus.ts';
 
 export interface MemberAdminUpdate {
+  /** @minLength 1 */
+  displayName?: string;
+  location?: string;
   tierId?: string;
   status?: MemberAdminUpdateStatus;
   shareWikiStats?: boolean;

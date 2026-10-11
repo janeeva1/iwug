@@ -25,6 +25,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminMember,
   AuthProviders,
   AuthUserEnvelope,
   CmsPage,
@@ -42,8 +43,10 @@ import type {
   LoginInput,
   LogoutAccount200,
   Member,
+  MemberAccountUpdate,
   MemberAdminUpdate,
   MemberRegistrationInput,
+  MemberSelfUpdate,
   MembershipTier,
   MembershipTierInput,
   RegisterInput,
@@ -2776,6 +2779,94 @@ export function useGetMyMembership<TData = Awaited<ReturnType<typeof getMyMember
 
 
 
+export const getUpdateMyMembershipUrl = () => {
+
+
+
+
+  return `/api/member/me`
+}
+
+/**
+ * @summary Update the current member's own profile preferences
+ */
+export const updateMyMembership = async (memberSelfUpdate: MemberSelfUpdate, options?: Parameters<typeof customFetch>[1]): Promise<Member> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<Member>(getUpdateMyMembershipUrl(),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(memberSelfUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdateMyMembershipMutationKey = () => ['updateMyMembership'] as const;
+
+export const getUpdateMyMembershipMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMyMembership>>, TError,UpdateMyMembershipMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateMyMembership>>, TError,UpdateMyMembershipMutationVariables, TContext> => {
+
+const mutationKey = getUpdateMyMembershipMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMyMembership>>, UpdateMyMembershipMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateMyMembership(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateMyMembershipMutationResult = NonNullable<Awaited<ReturnType<typeof updateMyMembership>>>
+    export type UpdateMyMembershipMutationBody = BodyType<MemberSelfUpdate>
+    export type UpdateMyMembershipMutationError = ErrorType<void>
+    export type UpdateMyMembershipMutationVariables = {data: BodyType<MemberSelfUpdate>}
+
+    /**
+ * @summary Update the current member's own profile preferences
+ */
+export const useUpdateMyMembership = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMyMembership>>, TError,UpdateMyMembershipMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateMyMembership>>,
+        TError,
+        UpdateMyMembershipMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateMyMembershipMutationOptions(options), queryClient);
+    }
+
 export const getListMembersUrl = () => {
 
 
@@ -2785,11 +2876,11 @@ export const getListMembersUrl = () => {
 }
 
 /**
- * @summary List registered members for authorized administrators
+ * @summary List registered members with their linked account for administrators
  */
-export const listMembers = async ( options?: Parameters<typeof customFetch>[1]): Promise<Member[]> => {
+export const listMembers = async ( options?: Parameters<typeof customFetch>[1]): Promise<AdminMember[]> => {
 
-  return customFetch<Member[]>(getListMembersUrl(),
+  return customFetch<AdminMember[]>(getListMembersUrl(),
   {
     ...options,
     method: 'GET'
@@ -2856,7 +2947,7 @@ export function useListMembers<TData = Awaited<ReturnType<typeof listMembers>>, 
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary List registered members for authorized administrators
+ * @summary List registered members with their linked account for administrators
  */
 
 export function useListMembers<TData = Awaited<ReturnType<typeof listMembers>>, TError = ErrorType<unknown>>(
@@ -2886,10 +2977,10 @@ export const getUpdateMemberUrl = (memberId: string,) => {
 }
 
 /**
- * @summary Update a member's tier or approval status
+ * @summary Update a member's profile, tier or approval status
  */
 export const updateMember = async (memberId: string,
-    memberAdminUpdate: MemberAdminUpdate, options?: Parameters<typeof customFetch>[1]): Promise<Member> => {
+    memberAdminUpdate: MemberAdminUpdate, options?: Parameters<typeof customFetch>[1]): Promise<AdminMember> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -2905,7 +2996,7 @@ export const updateMember = async (memberId: string,
     }
     return headers;
   };
-return customFetch<Member>(getUpdateMemberUrl(memberId),
+return customFetch<AdminMember>(getUpdateMemberUrl(memberId),
   {
     ...options,
     method: 'PATCH',
@@ -2953,7 +3044,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type UpdateMemberMutationVariables = {memberId: string;data: BodyType<MemberAdminUpdate>}
 
     /**
- * @summary Update a member's tier or approval status
+ * @summary Update a member's profile, tier or approval status
  */
 export const useUpdateMember = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMember>>, TError,UpdateMemberMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -2964,6 +3055,169 @@ export const useUpdateMember = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateMemberMutationOptions(options), queryClient);
+    }
+
+export const getDeleteMemberUrl = (memberId: string,) => {
+
+
+
+
+  return `/api/admin/members/${memberId}`
+}
+
+/**
+ * @summary Delete a member and their linked login account
+ */
+export const deleteMember = async (memberId: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteMemberUrl(memberId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteMemberMutationKey = () => ['deleteMember'] as const;
+
+export const getDeleteMemberMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMember>>, TError,DeleteMemberMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteMember>>, TError,DeleteMemberMutationVariables, TContext> => {
+
+const mutationKey = getDeleteMemberMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteMember>>, DeleteMemberMutationVariables> = (props) => {
+          const {memberId} = props ?? {};
+
+          return  deleteMember(memberId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteMemberMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMember>>>
+
+    export type DeleteMemberMutationError = ErrorType<void>
+    export type DeleteMemberMutationVariables = {memberId: string}
+
+    /**
+ * @summary Delete a member and their linked login account
+ */
+export const useDeleteMember = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMember>>, TError,DeleteMemberMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteMember>>,
+        TError,
+        DeleteMemberMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteMemberMutationOptions(options), queryClient);
+    }
+
+export const getUpdateMemberAccountUrl = (memberId: string,) => {
+
+
+
+
+  return `/api/admin/members/${memberId}/account`
+}
+
+/**
+ * @summary Update the linked login account (email, username or password)
+ */
+export const updateMemberAccount = async (memberId: string,
+    memberAccountUpdate: MemberAccountUpdate, options?: Parameters<typeof customFetch>[1]): Promise<AdminMember> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<AdminMember>(getUpdateMemberAccountUrl(memberId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(memberAccountUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdateMemberAccountMutationKey = () => ['updateMemberAccount'] as const;
+
+export const getUpdateMemberAccountMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMemberAccount>>, TError,UpdateMemberAccountMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateMemberAccount>>, TError,UpdateMemberAccountMutationVariables, TContext> => {
+
+const mutationKey = getUpdateMemberAccountMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMemberAccount>>, UpdateMemberAccountMutationVariables> = (props) => {
+          const {memberId,data} = props ?? {};
+
+          return  updateMemberAccount(memberId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateMemberAccountMutationResult = NonNullable<Awaited<ReturnType<typeof updateMemberAccount>>>
+    export type UpdateMemberAccountMutationBody = BodyType<MemberAccountUpdate>
+    export type UpdateMemberAccountMutationError = ErrorType<unknown>
+    export type UpdateMemberAccountMutationVariables = {memberId: string;data: BodyType<MemberAccountUpdate>}
+
+    /**
+ * @summary Update the linked login account (email, username or password)
+ */
+export const useUpdateMemberAccount = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMemberAccount>>, TError,UpdateMemberAccountMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateMemberAccount>>,
+        TError,
+        UpdateMemberAccountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateMemberAccountMutationOptions(options), queryClient);
     }
 
 export const getGetCommunitySummaryUrl = () => {

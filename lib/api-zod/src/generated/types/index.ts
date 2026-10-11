@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './adminMember.ts';
+export * from './adminMemberRole.ts';
 export * from './authProviders.ts';
 export * from './authUser.ts';
 export * from './authUserEnvelope.ts';
@@ -34,9 +36,11 @@ export * from './healthStatus.ts';
 export * from './loginInput.ts';
 export * from './logoutAccount200.ts';
 export * from './member.ts';
+export * from './memberAccountUpdate.ts';
 export * from './memberAdminUpdate.ts';
 export * from './memberAdminUpdateStatus.ts';
 export * from './memberRegistrationInput.ts';
+export * from './memberSelfUpdate.ts';
 export * from './membershipTier.ts';
 export * from './membershipTierInput.ts';
 export * from './membershipTierInputInterval.ts';

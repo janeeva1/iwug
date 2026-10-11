@@ -10,7 +10,6 @@ import type { WikimediaProjectStats } from './wikimediaProjectStats.ts';
 
 export interface CommunityContributor {
   memberId: string;
-  displayName: string;
   totalContributions: number;
   projects: WikimediaProjectStats[];
   byProject: CommunityProjectTotal[];
