@@ -31,20 +31,44 @@ declare global {
   }
 }
 
+/**
+ * The primary CMS administrator. This identity is fixed in code so the owner's
+ * admin account can always be provisioned and can never be silently replaced.
+ * Additional admins may still be delegated through the env allowlists below.
+ */
+export const ADMIN_EMAIL = "clintonfaze@gmail.com";
+export const ADMIN_USERNAME = "bovimacoco";
+
 const adminEmails = new Set(
-  (process.env.IWUG_ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((value) => value.trim().toLowerCase())
-    .filter(Boolean),
+  [
+    ADMIN_EMAIL,
+    ...(process.env.IWUG_ADMIN_EMAILS ?? "")
+      .split(",")
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean),
+  ],
 );
 const adminUsernames = new Set(
-  (process.env.IWUG_ADMIN_WIKIMEDIA_USERNAMES ?? "")
-    .split(",")
-    .map((value) => value.trim().toLowerCase())
-    .filter(Boolean),
+  [
+    ADMIN_USERNAME,
+    ...(process.env.IWUG_ADMIN_WIKIMEDIA_USERNAMES ?? "")
+      .split(",")
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean),
+  ],
 );
 
-/** Admins are configured by env: allowlisted emails and/or Wikimedia usernames. */
+/** True when the given email/username is the reserved primary admin identity. */
+export function isAdminIdentity(
+  email: string | null | undefined,
+  username: string | null | undefined,
+): boolean {
+  if (email && email.trim().toLowerCase() === ADMIN_EMAIL) return true;
+  if (username && username.trim().toLowerCase() === ADMIN_USERNAME) return true;
+  return false;
+}
+
+/** Admin role: the reserved primary admin or any allowlisted email/username. */
 export function resolveRole(
   email: string | null | undefined,
   username: string | null | undefined,
@@ -54,7 +78,12 @@ export function resolveRole(
   return "member";
 }
 
-export function isAdmin(user: AuthUser | null | undefined): boolean {
+export function isAdmin(
+  user:
+    | { role?: string | null; email?: string | null; username?: string | null }
+    | null
+    | undefined,
+): boolean {
   if (!user) return false;
   return user.role === "admin" || resolveRole(user.email, user.username) === "admin";
 }

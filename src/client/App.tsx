@@ -2,8 +2,8 @@ import './site.css';
 import './auth-notice.css';
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider, useIsFetching, useIsMutating, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
-import { AuthProvider, useAuth, type AuthUser } from './auth';
+import { Link, Redirect, Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
+import { AuthProvider, adminLogin, useAuth, type AuthUser } from './auth';
 import { AdminContentPanel, SiteContentContextProvider, SITE_CONTENT_QUERY_KEY, buildSiteContentValue, fetchSiteContent, getContentValue, setContentLookup, useSiteContent } from './site-content';
 import { AdminPaymentsPanel, MEMBER_BILLING_QUERY_KEY, formatNgn, initializePayment, useMemberBilling, usePaymentConfig, useVerifyPayment } from './payments';
 import {
@@ -863,12 +863,43 @@ function MemberPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Loca
   </main></Protected></PageFrame>;
 }
 type AdminTab = 'overview'|'pages'|'events'|'tiers'|'members'|'payments'|'settings'|'stats'|'content';
+function AdminSignInPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Locale) => void }) {
+  const { setUser } = useAuth();
+  const [, setLocation] = useLocation();
+  const [identifier,setIdentifier]=useState('');
+  const [password,setPassword]=useState('');
+  const [error,setError]=useState('');
+  const [busy,setBusy]=useState(false);
+  const submit=async(ev:FormEvent)=>{
+    ev.preventDefault();setError('');setBusy(true);
+    try{const user=await adminLogin(identifier,password);setUser(user);setLocation('/admin');}
+    catch(err){const status=(err as {status?:number}).status;if(status===403){setLocation('/sign-in');return;}setError(err instanceof Error?err.message:t(locale,'Enweghị ike ibanye ugbu a.','Could not sign in right now.'));}
+    finally{setBusy(false);}
+  };
+  return <PageFrame locale={locale} setLocale={setLocale}><main className="inner-page shell"><div className="auth-gate"><div className="auth-gate-card">
+    <BrandMark/>
+    <span className="eyebrow">ADMINISTRATOR ACCESS</span>
+    <h1 className="serif">{t(locale,'Naanị ndị nchịkwa','Administrators only')}</h1>
+    <p>{t(locale,'Banye na akaụntụ nchịkwa iji lekọta ọdịnaya, mmemme na ndị otu.','Sign in with the administrator account to manage content, events and members.')}</p>
+    <form className="auth-form" onSubmit={submit}>
+      <label>{t(locale,'Email ma ọ bụ aha njirimara','Email or username')}<input className="input" autoComplete="username" required value={identifier} onChange={e=>setIdentifier(e.target.value)} data-testid="input-admin-identifier"/></label>
+      <label>{t(locale,'Okwuntughe','Password')}<input className="input" type="password" autoComplete="current-password" required value={password} onChange={e=>setPassword(e.target.value)} data-testid="input-admin-password"/></label>
+      {error&&<div className="notice error-notice" role="alert" data-testid="admin-signin-error"><CircleHelp size={18}/><span>{error}</span></div>}
+      <button className="btn-primary" type="submit" disabled={busy} data-testid="button-admin-sign-in">{busy?<LoaderCircle className="spin" size={16}/>:<ShieldCheck size={16}/>} {t(locale,'Banye na nchịkwa','Sign in as admin')}</button>
+    </form>
+    <p className="auth-switch">{t(locale,'Ị bụ onye otu?','A community member instead?')} <Link href="/sign-in" data-testid="link-admin-to-member">{t(locale,'Banye ebe a','Sign in here')}</Link></p>
+  </div></div></main></PageFrame>;
+}
 function AdminPage({ locale, setLocale }: { locale: Locale; setLocale: (v: Locale) => void }) {
   const [tab,setTab]=useState<AdminTab>('overview');
-  return <PageFrame locale={locale} setLocale={setLocale}><Protected locale={locale}><main className="admin-shell shell">
+  const { isSignedIn, isAdmin, loading } = useAuth();
+  if (loading) return <PageFrame locale={locale} setLocale={setLocale}><div className="auth-gate"><div className="auth-gate-card"><BrandMark/><Skeleton rows={2}/></div></div></PageFrame>;
+  if (!isSignedIn) return <AdminSignInPage locale={locale} setLocale={setLocale}/>;
+  if (!isAdmin) return <Redirect to="/sign-in"/>;
+  return <PageFrame locale={locale} setLocale={setLocale}><main className="admin-shell shell">
     <div className="admin-heading"><div><span className="eyebrow">{t(locale,'NCHỊKWA OBODO / COMMUNITY CONTROL ROOM','COMMUNITY CONTROL ROOM')}</span><h1 className="serif">{t(locale,'Ilekọta ọrụ obodo.','Stewardship.')}</h1><p>{t(locale,'Ndị obodo na-elekọta ọdịnaya, mmemme na ndị otu ka ọrụ wee gaa n’ihu.','Content, gatherings and membership — managed by the people who keep the work moving.')}</p></div><span className="admin-badge"><ShieldCheck size={15}/>{t(locale,'OGHERE NDỊ NCHỊKWA','SIGNED-IN ADMIN AREA')}</span></div>
     <div className="admin-layout"><aside className="admin-nav">{(['overview','pages','events','tiers','members','payments','stats','content','settings'] as AdminTab[]).map(key=><button key={key} className={tab===key?'active':''} onClick={()=>setTab(key)} data-testid={`admin-tab-${key}`}>{key==='overview'?<ChartNoAxesColumn size={16}/>:key==='pages'?<BookOpen size={16}/>:key==='events'?<CalendarDays size={16}/>:key==='tiers'?<UsersRound size={16}/>:key==='members'?<ShieldCheck size={16}/>:key==='payments'?<CreditCard size={16}/>:key==='content'?<Pencil size={16}/>:key==='settings'?<Settings2 size={16}/>:<ChartNoAxesColumn size={16}/>}<span>{t(locale,key==='overview'?'Nchịkọta':key==='pages'?'Peeji':key==='events'?'Mmemme':key==='tiers'?'Ọkwa otu':key==='members'?'Ndị otu':key==='payments'?'Ụgwọ':key==='stats'?'Stats Wiki':key==='content'?'Ọdịnaya':'Ntọala',key==='overview'?'Overview':key==='pages'?'Pages':key==='events'?'Events':key==='tiers'?'Membership tiers':key==='members'?'Members':key==='payments'?'Payments':key==='stats'?'Wiki statistics':key==='content'?'Site content':'Settings')}</span><ChevronRight size={14}/></button>)}</aside><div className="admin-content"><AdminPanel tab={tab} locale={locale}/></div></div>
-  </main></Protected></PageFrame>;
+  </main></PageFrame>;
 }
 function AdminPanel({tab,locale}:{tab:AdminTab;locale:Locale}) {
   const summary=useGetCommunitySummary();
@@ -994,6 +1025,10 @@ function SignInForm({ locale }: { locale: Locale }) {
   const [error, setError] = useState('');
   useEffect(() => {
     const code = new URLSearchParams(window.location.search).get('error');
+    if (code === 'admin_use_admin') {
+      setError(t(locale,'Akaụntụ nchịkwa na-abanye site na bọtịnụ Ndị nchịkwa.','Administrators sign in through the Admin button.'));
+      return;
+    }
     if (code) setError(authErrorMessage(locale, code));
   }, [locale]);
   const submit = (ev: FormEvent) => {

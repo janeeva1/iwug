@@ -16,6 +16,8 @@ import {
   deleteSession,
   getSessionToken,
   getSessionUser,
+  isAdmin,
+  isAdminIdentity,
   OAUTH_STATE_COOKIE,
   readCookie,
   resolveRole,
@@ -274,6 +276,13 @@ router.post("/register", async (req, res, next) => {
     }
 
     const rawUsername = parsed.data.username?.trim() ?? "";
+    if (isAdminIdentity(parsed.data.email, rawUsername)) {
+      res.status(409).json({
+        error:
+          "This email or Wikimedia username is reserved and cannot be self-registered.",
+      });
+      return;
+    }
     let wiki: Awaited<ReturnType<typeof getWikimediaAccount>> | null = null;
     if (rawUsername) {
       const info = await getWikimediaAccount(rawUsername);
@@ -371,6 +380,68 @@ router.post("/login", async (req, res, next) => {
     const valid = await verifyPassword(parsed.data.password, user.passwordHash);
     if (!valid) {
       res.status(401).json({ error: "Incorrect email/username or password." });
+      return;
+    }
+    if (isAdmin(user)) {
+      res.status(403).json({
+        error: "Administrator accounts sign in through the Admin button.",
+      });
+      return;
+    }
+
+    const { token, expiresAt } = await createSession(user.id, req);
+    setSessionCookie(res, token, expiresAt);
+    res.json({ user: toAuthUser(user) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * Administrator sign-in. Reached only from the footer Admin button. Creates a
+ * session only for the single provisioned admin account; members are rejected
+ * and sent back to the normal member sign-in by the client.
+ */
+router.post("/admin/login", async (req, res, next) => {
+  try {
+    const parsed = z
+      .object({
+        identifier: z.string().trim().min(1).max(320),
+        password: z.string().min(1).max(200),
+      })
+      .safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Enter your email or username and password." });
+      return;
+    }
+
+    const identifier = parsed.data.identifier;
+    const user = (
+      await db
+        .select()
+        .from(usersTable)
+        .where(
+          or(
+            eq(usersTable.email, identifier.toLowerCase()),
+            eq(usersTable.username, identifier),
+          ),
+        )
+        .limit(1)
+    )[0];
+
+    if (!user || !user.passwordHash) {
+      res.status(401).json({ error: "Incorrect email/username or password." });
+      return;
+    }
+    const valid = await verifyPassword(parsed.data.password, user.passwordHash);
+    if (!valid) {
+      res.status(401).json({ error: "Incorrect email/username or password." });
+      return;
+    }
+    if (!isAdmin(user)) {
+      res.status(403).json({
+        error: "This is a member account. Sign in through the member page.",
+      });
       return;
     }
 
@@ -552,6 +623,10 @@ router.get("/google/callback", async (req, res) => {
       accessToken: profile.accessToken,
       expiresAt: profile.expiresAt,
     });
+    if (isAdminIdentity(user.email, user.username)) {
+      res.redirect(`${appOrigin(req)}/sign-in?error=admin_use_admin`);
+      return;
+    }
     const { token, expiresAt } = await createSession(user.id, req);
     setSessionCookie(res, token, expiresAt);
     res.redirect(`${appOrigin(req)}${user.username ? "/member" : "/complete-profile"}`);
@@ -607,6 +682,10 @@ router.get("/wikimedia/callback", async (req, res) => {
       editCount: info.editCount,
       wikimediaUserId: info.id,
     });
+    if (isAdminIdentity(user.email, user.username)) {
+      res.redirect(`${appOrigin(req)}/sign-in?error=admin_use_admin`);
+      return;
+    }
     const { token, expiresAt } = await createSession(user.id, req);
     setSessionCookie(res, token, expiresAt);
     res.redirect(`${appOrigin(req)}/member`);

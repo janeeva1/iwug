@@ -79,3 +79,27 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
   return ctx;
 }
+
+const base = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '');
+
+/**
+ * Administrator sign-in for the footer Admin button. Only succeeds for the
+ * single provisioned admin; a member account receives a 403 which the caller
+ * uses to fall back to the normal member sign-in.
+ */
+export async function adminLogin(identifier: string, password: string): Promise<AuthUser> {
+  const res = await fetch(`${base}/api/auth/admin/login`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ identifier, password }),
+  });
+  const data = (await res.json().catch(() => null)) as { user?: AuthUser; error?: string } | null;
+  if (!res.ok) {
+    const error = new Error(data?.error ?? 'Sign-in failed') as Error & { status?: number };
+    error.status = res.status;
+    throw error;
+  }
+  if (!data?.user) throw new Error('Sign-in failed');
+  return data.user;
+}

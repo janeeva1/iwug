@@ -4,6 +4,7 @@ import { logger } from "./lib/logger";
 import { runMigrations } from "./lib/migrate";
 import { ensureCommunitySeed } from "./lib/seedCommunity";
 import { ensureContentSeed } from "./lib/seedContent";
+import { ensureAdminSeed } from "./lib/seedAdmin";
 
 const port = Number(process.env.PORT ?? 5000);
 
@@ -17,7 +18,11 @@ async function prepareDatabase(): Promise<void> {
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
       await runMigrations();
-      await Promise.all([ensureCommunitySeed(), ensureContentSeed()]);
+      await Promise.all([
+        ensureCommunitySeed(),
+        ensureContentSeed(),
+        ensureAdminSeed(),
+      ]);
       logger.info("Database bootstrap complete");
       return;
     } catch (error) {
